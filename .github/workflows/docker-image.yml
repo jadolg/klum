@@ -26,10 +26,3 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           tags: ghcr.io/jadolg/klum:${{ github.sha }}
-      - name: Build and latest
-        if: ${{ github.ref == 'refs/heads/master' }}
-        uses: docker/build-push-action@v4
-        with:
-          push: true
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
-          tags: ghcr.io/jadolg//klum:latest
