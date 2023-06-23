@@ -10,9 +10,12 @@ jobs:
   docker:
     name: build and push Docker image
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v3
-      - name: Login to DockerHub
+      - name: Login to Docker registry
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
