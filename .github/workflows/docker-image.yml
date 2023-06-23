@@ -26,3 +26,6 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: ghcr.io/jadolg/klum:${{ github.sha }}
+          build-args: |
+            VERSION=${{ github.ref_name }}
+            COMMIT=${{ github.sha }}
