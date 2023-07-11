@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jadolg/klum/pkg/github"
+
 	log "github.com/sirupsen/logrus"
 
 	"k8s.io/apimachinery/pkg/version"
@@ -34,6 +36,8 @@ type Config struct {
 	Server             string
 	CA                 string
 	DefaultClusterRole string
+	GithubURL          string
+	GithubToken        string
 }
 
 func Register(ctx context.Context,
@@ -53,6 +57,7 @@ func Register(ctx context.Context,
 		serviceAccounts: serviceAccount.Cache(),
 		k8sversion:      k8sversion,
 		kconfig:         kconfig,
+		kuser:           user,
 	}
 
 	v1alpha1.RegisterUserGeneratingHandler(ctx,
@@ -67,6 +72,7 @@ func Register(ctx context.Context,
 
 	secrets.OnChange(ctx, "klum-secret", h.OnSecretChange)
 	user.OnRemove(ctx, "klum-user", h.OnUserRemoved)
+	kconfig.OnChange(ctx, "klum-kconfig", h.OnKubeconfigChange)
 }
 
 type handler struct {
@@ -74,6 +80,7 @@ type handler struct {
 	apply           apply.Apply
 	serviceAccounts v1controller.ServiceAccountCache
 	k8sversion      *version.Info
+	kuser           v1alpha1.UserController
 	kconfig         v1alpha1.KubeconfigController
 }
 
@@ -96,8 +103,6 @@ func (h *handler) OnUserChange(user *klum.User, status klum.UserStatus) ([]runti
 		return nil, status, nil
 	}
 
-	intVersion := sanitizedVersion(h.k8sversion.Minor)
-
 	objs := []runtime.Object{
 		&v1.ServiceAccount{
 			ObjectMeta: metav1.ObjectMeta{
@@ -110,7 +115,7 @@ func (h *handler) OnUserChange(user *klum.User, status klum.UserStatus) ([]runti
 		},
 	}
 
-	if intVersion >= 24 {
+	if sanitizedVersion(h.k8sversion.Minor) >= 24 {
 		objs = append(objs,
 			&v1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
@@ -309,6 +314,12 @@ func (h *handler) OnUserRemoved(s string, user *klum.User) (*klum.User, error) {
 	if err != nil {
 		return user, err
 	}
+	if h.cfg.GithubToken != "" {
+		err := github.DeleteGithubSecret(user, h.cfg.GithubURL, h.cfg.GithubToken)
+		if err != nil {
+			log.Error(err)
+		}
+	}
 	return nil, nil
 }
 
@@ -323,6 +334,27 @@ func (h *handler) removeKubeconfig(user *klum.User) error {
 		return err
 	}
 	return nil
+}
+
+func (h *handler) OnKubeconfigChange(s string, kubeconfig *klum.Kubeconfig) (*klum.Kubeconfig, error) {
+	if kubeconfig == nil {
+		return nil, nil
+	}
+	user, err := h.kuser.Get(s, metav1.GetOptions{})
+	if err != nil {
+		log.Error(err)
+		return kubeconfig, nil
+	}
+
+	if h.cfg.GithubToken != "" {
+		err := github.UploadGithubSecret(kubeconfig, user, h.cfg.GithubURL, h.cfg.GithubToken)
+		if err != nil {
+			// Returning as if everything went well because we don't want to interfere with the kubeconfig creation
+			log.Error(err)
+			return kubeconfig, nil
+		}
+	}
+	return kubeconfig, nil
 }
 
 func setReady(status klum.UserStatus, ready bool) klum.UserStatus {
