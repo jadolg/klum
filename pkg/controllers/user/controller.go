@@ -349,9 +349,7 @@ func (h *handler) OnKubeconfigChange(s string, kubeconfig *klum.Kubeconfig) (*kl
 	if h.cfg.GithubToken != "" {
 		err := github.UploadGithubSecret(kubeconfig, user, h.cfg.GithubURL, h.cfg.GithubToken)
 		if err != nil {
-			// Returning as if everything went well because we don't want to interfere with the kubeconfig creation
-			log.Error(err)
-			return kubeconfig, nil
+			return nil, err
 		}
 	}
 	return kubeconfig, nil

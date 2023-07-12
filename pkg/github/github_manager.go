@@ -1,6 +1,7 @@
 package github
 
 import (
+	"fmt"
 	"regexp"
 
 	"github.com/ghodss/yaml"
@@ -9,11 +10,13 @@ import (
 )
 
 func UploadGithubSecret(kubeconfig *klum.Kubeconfig, user *klum.User, githubURL string, githubToken string) error {
+	if user.Spec.Sync.Github == (klum.GithubSyncSpec{}) {
+		return nil
+	}
 	if user.Spec.Sync.Github.SecretName == "" ||
 		user.Spec.Sync.Github.Owner == "" ||
 		user.Spec.Sync.Github.Repository == "" {
-		log.Info("Not enough github data to be able to create a GitHub secret")
-		return nil
+		return fmt.Errorf("not enough github data to be able to create a GitHub secret")
 	}
 
 	log.Infof("Adding secret (%s) to GitHub for user %s to %s/%s", user.Spec.Sync.Github.SecretName, kubeconfig.Name, user.Spec.Sync.Github.Owner, user.Spec.Sync.Github.Repository)
