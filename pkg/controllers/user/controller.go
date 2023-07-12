@@ -100,6 +100,10 @@ func (h *handler) OnUserChange(user *klum.User, status klum.UserStatus) ([]runti
 		if err != nil {
 			log.Warning(err)
 		}
+		err = h.removeGitHubSecret(user)
+		if err != nil {
+			log.Warning(err)
+		}
 		return nil, status, nil
 	}
 
@@ -314,13 +318,18 @@ func (h *handler) OnUserRemoved(s string, user *klum.User) (*klum.User, error) {
 	if err != nil {
 		return user, err
 	}
+	h.removeGitHubSecret(user)
+	return nil, nil
+}
+
+func (h *handler) removeGitHubSecret(user *klum.User) error {
 	if h.cfg.GithubToken != "" {
 		err := github.DeleteGithubSecret(user, h.cfg.GithubURL, h.cfg.GithubToken)
 		if err != nil {
-			log.Error(err)
+			return err
 		}
 	}
-	return nil, nil
+	return nil
 }
 
 func (h *handler) removeKubeconfig(user *klum.User) error {
