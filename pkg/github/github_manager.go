@@ -1,7 +1,6 @@
 package github
 
 import (
-	"fmt"
 	"regexp"
 
 	"github.com/ghodss/yaml"
@@ -10,47 +9,49 @@ import (
 )
 
 func UploadGithubSecret(kubeconfig *klum.Kubeconfig, user *klum.User, githubURL string, githubToken string) error {
-	owner, repo, env, secretName, done := getGitHubData(user)
-	if done {
-		log.Info("Not enough github data to be able to create a secret")
+	if user.Spec.Sync.Github.SecretName == "" ||
+		user.Spec.Sync.Github.Owner == "" ||
+		user.Spec.Sync.Github.Repository == "" {
+		log.Info("Not enough github data to be able to create a GitHub secret")
 		return nil
 	}
-	log.Infof("Adding secret (%s) to GitHub for user %s to %s/%s", secretName, kubeconfig.Name, owner, repo)
+
+	log.Infof("Adding secret (%s) to GitHub for user %s to %s/%s", user.Spec.Sync.Github.SecretName, kubeconfig.Name, user.Spec.Sync.Github.Owner, user.Spec.Sync.Github.Repository)
+
 	kubeconfigYAML, err := toYAMLString(kubeconfig.Spec)
 	if err != nil {
 		return err
 	}
 
-	return createRepositorySecret(githubURL, owner, repo, env, secretName, kubeconfigYAML, githubToken)
+	return createRepositorySecret(
+		githubURL,
+		user.Spec.Sync.Github.Owner,
+		user.Spec.Sync.Github.Repository,
+		user.Spec.Sync.Github.Environment,
+		user.Spec.Sync.Github.SecretName,
+		kubeconfigYAML,
+		githubToken,
+	)
 }
 
 func DeleteGithubSecret(user *klum.User, githubURL string, githubToken string) error {
-	owner, repo, env, secretName, done := getGitHubData(user)
-	if done {
-		log.Info("Not enough github data to be able to get any secret")
+	if user.Spec.Sync.Github.SecretName == "" ||
+		user.Spec.Sync.Github.Owner == "" ||
+		user.Spec.Sync.Github.Repository == "" {
+		log.Info("Not enough github data to be able to remove a GitHub secret")
 		return nil
 	}
-	log.Infof("Deleting secret (%s) from GitHub for user %s in %s/%s", secretName, user.Name, owner, repo)
 
-	return deleteRepositorySecret(githubURL, owner, repo, env, secretName, githubToken)
-}
+	log.Infof("Deleting secret (%s) from GitHub for user %s in %s/%s", user.Spec.Sync.Github.SecretName, user.Name, user.Spec.Sync.Github.Owner, user.Spec.Sync.Github.Repository)
 
-func getGitHubData(user *klum.User) (string, string, string, string, bool) {
-	owner, present := user.Annotations["github/owner"]
-	if !present {
-		return "", "", "", "", true
-	}
-	repo, present := user.Annotations["github/repo"]
-	if !present {
-		return "", "", "", "", true
-	}
-	env, _ := user.Annotations["github/env"]
-
-	secretName, present := user.Annotations["github/name"]
-	if !present {
-		secretName = fmt.Sprintf("%s_KUBECONFIG", clearString(user.Name))
-	}
-	return owner, repo, env, secretName, false
+	return deleteRepositorySecret(
+		githubURL,
+		user.Spec.Sync.Github.Owner,
+		user.Spec.Sync.Github.Repository,
+		user.Spec.Sync.Github.Environment,
+		user.Spec.Sync.Github.SecretName,
+		githubToken,
+	)
 }
 
 func toYAMLString(x interface{}) (string, error) {

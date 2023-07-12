@@ -21,10 +21,22 @@ type User struct {
 	Status            UserStatus `json:"status,omitempty"`
 }
 
+type GithubSyncSpec struct {
+	Owner       string `json:"owner"`
+	Repository  string `json:"repository"`
+	Environment string `json:"environment,omitempty"`
+	SecretName  string `json:"secret_name"`
+}
+
+type SyncSpec struct {
+	Github GithubSyncSpec `json:"github,omitempty"`
+}
+
 type UserSpec struct {
 	Enabled      *bool           `json:"enabled,omitempty"`
 	ClusterRoles []string        `json:"clusterRoles,omitempty"`
 	Roles        []NamespaceRole `json:"roles,omitempty"`
+	Sync         SyncSpec        `json:"sync,omitempty"`
 }
 
 type UserStatus struct {

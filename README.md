@@ -73,24 +73,23 @@ spec:
 
 ### Upload kubeconfig to GitHub secrets
 
-In order to upload Kubeconfigs to GitHub you need to start klum with a valid GitHub token `--github-token` and add the following annotations to your User.
-`github/env` can be skipped if you want only repository secrets.  
-`github/name` can be skipped and a name will be generated from the name of the user and the postfix `_KUBECONFIG`. In this case: `DARREN_KUBECONFIG`. 
+In order to upload Kubeconfigs to GitHub you need to start klum with a valid GitHub token `--github-token` and add the following `sync` settings to your User.
 
 ```yaml
 kind: User
 apiVersion: klum.cattle.io/v1alpha1
 metadata:
   name: darren
-  annotations:
-    "github/owner": jadolg
-    "github/repo": klum-example
-    "github/env": prod
-    "github/name": KUBE_CONFIG
 spec:
   roles:
     - namespace: default
       clusterRole: cluster-admin
+  sync:
+    github:
+      owner: jadolg
+      repository: klum-example
+      environment: prod
+      secret_name: KUBE_CONFIG
 ```
 
 When the user is reenabled a new kubeconfig with new token will be created.
