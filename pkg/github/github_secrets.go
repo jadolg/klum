@@ -38,9 +38,23 @@ func createRepositorySecret(privateURL, owner, repo, env, secretName, secretValu
 		return err
 	}
 
-	key, _, err := client.Actions.GetRepoPublicKey(ctx, owner, repo)
-	if err != nil {
-		return err
+	var key *github.PublicKey
+	var repositoryID int
+
+	if env == "" {
+		key, _, err = client.Actions.GetRepoPublicKey(ctx, owner, repo)
+		if err != nil {
+			return err
+		}
+	} else {
+		repositoryID, err = getRepoID(ctx, client, owner, repo)
+		if err != nil {
+			return err
+		}
+		key, _, err = client.Actions.GetEnvPublicKey(ctx, repositoryID, env)
+		if err != nil {
+			return err
+		}
 	}
 
 	encryptedSecret, err := encodeWithPublicKey(secretValue, *key.Key)
@@ -58,10 +72,6 @@ func createRepositorySecret(privateURL, owner, repo, env, secretName, secretValu
 		return err
 	}
 
-	repositoryID, err := getRepoID(ctx, client, owner, repo)
-	if err != nil {
-		return err
-	}
 	_, err = client.Actions.CreateOrUpdateEnvSecret(ctx, repositoryID, env, secret)
 	return err
 }
