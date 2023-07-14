@@ -9,12 +9,10 @@ import (
 )
 
 func UploadGithubSecret(kubeconfig *klum.Kubeconfig, user *klum.User, githubURL string, githubToken string) error {
-	if user.Spec.Sync.Github == (klum.GithubSyncSpec{}) {
+	if user.Spec.Sync.Github == nil {
 		return nil
 	}
-	if user.Spec.Sync.Github.SecretName == "" ||
-		user.Spec.Sync.Github.Owner == "" ||
-		user.Spec.Sync.Github.Repository == "" {
+	if !user.Spec.Sync.Github.Valid() {
 		return fmt.Errorf("not enough github data to be able to create a GitHub secret")
 	}
 
@@ -37,9 +35,7 @@ func UploadGithubSecret(kubeconfig *klum.Kubeconfig, user *klum.User, githubURL 
 }
 
 func DeleteGithubSecret(user *klum.User, githubURL string, githubToken string) error {
-	if user.Spec.Sync.Github.SecretName == "" ||
-		user.Spec.Sync.Github.Owner == "" ||
-		user.Spec.Sync.Github.Repository == "" {
+	if !user.Spec.Sync.Github.Valid() {
 		log.Info("Not enough github data to be able to remove a GitHub secret")
 		return nil
 	}

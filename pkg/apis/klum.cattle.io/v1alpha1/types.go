@@ -29,7 +29,11 @@ type GithubSyncSpec struct {
 }
 
 type SyncSpec struct {
-	Github GithubSyncSpec `json:"github,omitempty"`
+	Github *GithubSyncSpec `json:"github,omitempty"`
+}
+
+func (g *GithubSyncSpec) Valid() bool {
+	return g.SecretName != "" && g.Owner != "" && g.Repository != ""
 }
 
 type UserSpec struct {
