@@ -2,7 +2,6 @@ package github
 
 import (
 	"fmt"
-	"regexp"
 
 	"github.com/ghodss/yaml"
 	klum "github.com/jadolg/klum/pkg/apis/klum.cattle.io/v1alpha1"
