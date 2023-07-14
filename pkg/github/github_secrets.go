@@ -31,30 +31,16 @@ func encodeWithPublicKey(text string, publicKey string) (string, error) {
 	return encryptedBase64, nil
 }
 
-func createRepositorySecret(privateURL, owner, repo, env, secretName, secretValue, authToken string) error {
-	ctx := context.Background()
+func createRepositorySecret(ctx context.Context, privateURL, owner, repo, secretName, secretValue, authToken string) error {
 	client, err := newGithubClientWithToken(authToken, privateURL)
 	if err != nil {
 		return err
 	}
 
 	var key *github.PublicKey
-	var repositoryID int
-
-	if env == "" {
-		key, _, err = client.Actions.GetRepoPublicKey(ctx, owner, repo)
-		if err != nil {
-			return err
-		}
-	} else {
-		repositoryID, err = getRepoID(ctx, client, owner, repo)
-		if err != nil {
-			return err
-		}
-		key, _, err = client.Actions.GetEnvPublicKey(ctx, repositoryID, env)
-		if err != nil {
-			return err
-		}
+	key, _, err = client.Actions.GetRepoPublicKey(ctx, owner, repo)
+	if err != nil {
+		return err
 	}
 
 	encryptedSecret, err := encodeWithPublicKey(secretValue, *key.Key)
@@ -67,9 +53,36 @@ func createRepositorySecret(privateURL, owner, repo, env, secretName, secretValu
 		EncryptedValue: encryptedSecret,
 	}
 
-	if env == "" {
-		_, err := client.Actions.CreateOrUpdateRepoSecret(ctx, owner, repo, secret)
+	_, err = client.Actions.CreateOrUpdateRepoSecret(ctx, owner, repo, secret)
+	return err
+}
+
+func createRepositoryEnvSecret(ctx context.Context, privateURL, owner, repo, env, secretName, secretValue, authToken string) error {
+	client, err := newGithubClientWithToken(authToken, privateURL)
+	if err != nil {
 		return err
+	}
+
+	var key *github.PublicKey
+	var repositoryID int
+
+	repositoryID, err = getRepoID(ctx, client, owner, repo)
+	if err != nil {
+		return err
+	}
+	key, _, err = client.Actions.GetEnvPublicKey(ctx, repositoryID, env)
+	if err != nil {
+		return err
+	}
+
+	encryptedSecret, err := encodeWithPublicKey(secretValue, *key.Key)
+	if err != nil {
+		return err
+	}
+
+	secret := &github.EncryptedSecret{
+		Name:           secretName,
+		EncryptedValue: encryptedSecret,
 	}
 
 	_, err = client.Actions.CreateOrUpdateEnvSecret(ctx, repositoryID, env, secret)
@@ -86,15 +99,19 @@ func getRepoID(ctx context.Context, client *github.Client, owner string, repo st
 	return repositoryID, nil
 }
 
-func deleteRepositorySecret(privateURL, owner, repo, env, secretName, authToken string) error {
-	ctx := context.Background()
+func deleteRepositorySecret(ctx context.Context, privateURL, owner, repo, secretName, authToken string) error {
 	client, err := newGithubClientWithToken(authToken, privateURL)
 	if err != nil {
 		return err
 	}
 
-	if env == "" {
-		_, err = client.Actions.DeleteRepoSecret(ctx, owner, repo, secretName)
+	_, err = client.Actions.DeleteRepoSecret(ctx, owner, repo, secretName)
+	return err
+}
+
+func deleteRepositoryEnvSecret(ctx context.Context, privateURL, owner, repo, env, secretName, authToken string) error {
+	client, err := newGithubClientWithToken(authToken, privateURL)
+	if err != nil {
 		return err
 	}
 

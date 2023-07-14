@@ -1,6 +1,7 @@
 package github
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/ghodss/yaml"
@@ -23,15 +24,30 @@ func UploadGithubSecret(kubeconfig *klum.Kubeconfig, user *klum.User, githubURL 
 		return err
 	}
 
-	return createRepositorySecret(
-		githubURL,
-		user.Spec.Sync.Github.Owner,
-		user.Spec.Sync.Github.Repository,
-		user.Spec.Sync.Github.Environment,
-		user.Spec.Sync.Github.SecretName,
-		kubeconfigYAML,
-		githubToken,
-	)
+	ctx := context.Background()
+
+	if user.Spec.Sync.Github.Environment == "" {
+		return createRepositorySecret(
+			ctx,
+			githubURL,
+			user.Spec.Sync.Github.Owner,
+			user.Spec.Sync.Github.Repository,
+			user.Spec.Sync.Github.SecretName,
+			kubeconfigYAML,
+			githubToken,
+		)
+	} else {
+		return createRepositoryEnvSecret(
+			ctx,
+			githubURL,
+			user.Spec.Sync.Github.Owner,
+			user.Spec.Sync.Github.Repository,
+			user.Spec.Sync.Github.Environment,
+			user.Spec.Sync.Github.SecretName,
+			kubeconfigYAML,
+			githubToken,
+		)
+	}
 }
 
 func DeleteGithubSecret(user *klum.User, githubURL string, githubToken string) error {
@@ -41,15 +57,27 @@ func DeleteGithubSecret(user *klum.User, githubURL string, githubToken string) e
 	}
 
 	log.Infof("Deleting secret (%s) from GitHub for user %s in %s/%s", user.Spec.Sync.Github.SecretName, user.Name, user.Spec.Sync.Github.Owner, user.Spec.Sync.Github.Repository)
-
-	return deleteRepositorySecret(
-		githubURL,
-		user.Spec.Sync.Github.Owner,
-		user.Spec.Sync.Github.Repository,
-		user.Spec.Sync.Github.Environment,
-		user.Spec.Sync.Github.SecretName,
-		githubToken,
-	)
+	ctx := context.Background()
+	if user.Spec.Sync.Github.Environment == "" {
+		return deleteRepositorySecret(
+			ctx,
+			githubURL,
+			user.Spec.Sync.Github.Owner,
+			user.Spec.Sync.Github.Repository,
+			user.Spec.Sync.Github.SecretName,
+			githubToken,
+		)
+	} else {
+		return deleteRepositoryEnvSecret(
+			ctx,
+			githubURL,
+			user.Spec.Sync.Github.Owner,
+			user.Spec.Sync.Github.Repository,
+			user.Spec.Sync.Github.Environment,
+			user.Spec.Sync.Github.SecretName,
+			githubToken,
+		)
+	}
 }
 
 func toYAMLString(x interface{}) (string, error) {
