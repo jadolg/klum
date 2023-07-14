@@ -25,7 +25,7 @@ type GithubSyncSpec struct {
 	Owner       string `json:"owner"`
 	Repository  string `json:"repository"`
 	Environment string `json:"environment,omitempty"`
-	SecretName  string `json:"secret_name"`
+	SecretName  string `json:"secretName"`
 }
 
 type SyncSpec struct {
