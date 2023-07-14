@@ -64,8 +64,3 @@ func toYAMLString(x interface{}) (string, error) {
 	}
 	return string(b), nil
 }
-
-func clearString(str string) string {
-	nonAlphanumericRegex := regexp.MustCompile(`[^a-zA-Z0-9 ]+`)
-	return nonAlphanumericRegex.ReplaceAllString(str, "")
-}
