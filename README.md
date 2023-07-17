@@ -77,6 +77,7 @@ In order to upload Kubeconfigs to GitHub you need to start klum with a valid Git
 You can create repository scoped secrets and environment scoped secrets if you specify an `environment`.
 
 ```yaml
+---
 kind: User
 apiVersion: klum.cattle.io/v1alpha1
 metadata:
@@ -84,13 +85,19 @@ metadata:
 spec:
   roles:
     - namespace: default
-      clusterRole: cluster-admin
-  sync:
-    github:
-      owner: jadolg
-      repository: klum-example
-      environment: prod
-      secretName: KUBE_CONFIG
+      clusterRole: cluster-admin  
+---
+kind: UserSync
+apiVersion: klum.cattle.io/v1alpha1
+metadata:
+  name: darren
+spec:
+  user: darren
+  github:
+    owner: jadolg
+    repository: klum-example
+    environment: prod
+    secretName: KUBE_CONFIG
 ```
 
 When the user is reenabled a new kubeconfig with new token will be created.

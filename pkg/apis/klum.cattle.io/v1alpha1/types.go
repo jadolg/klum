@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	UserReadyCondition = condition.Cond("Ready")
+	UserReadyCondition     = condition.Cond("Ready")
+	UserSyncReadyCondition = condition.Cond("Ready")
 )
 
 // +genclient
@@ -21,26 +22,10 @@ type User struct {
 	Status            UserStatus `json:"status,omitempty"`
 }
 
-type GithubSyncSpec struct {
-	Owner       string `json:"owner"`
-	Repository  string `json:"repository"`
-	Environment string `json:"environment,omitempty"`
-	SecretName  string `json:"secretName"`
-}
-
-type SyncSpec struct {
-	Github *GithubSyncSpec `json:"github,omitempty"`
-}
-
-func (g *GithubSyncSpec) Valid() bool {
-	return g.SecretName != "" && g.Owner != "" && g.Repository != ""
-}
-
 type UserSpec struct {
 	Enabled      *bool           `json:"enabled,omitempty"`
 	ClusterRoles []string        `json:"clusterRoles,omitempty"`
 	Roles        []NamespaceRole `json:"roles,omitempty"`
-	Sync         SyncSpec        `json:"sync,omitempty"`
 }
 
 type UserStatus struct {
@@ -120,4 +105,35 @@ type NamedContext struct {
 	Name string `json:"name"`
 	// Context holds the context information
 	Context Context `json:"context"`
+}
+
+// +genclient
+// +genclient:nonNamespaced
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+type UserSync struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              UserSyncSpec   `json:"spec"`
+	Status            UserSyncStatus `json:"status,omitempty"`
+}
+
+type UserSyncSpec struct {
+	User   string          `json:"user"`
+	Github *GithubSyncSpec `json:"github"`
+}
+
+type GithubSyncSpec struct {
+	Owner       string `json:"owner"`
+	Repository  string `json:"repository"`
+	Environment string `json:"environment,omitempty"`
+	SecretName  string `json:"secretName"`
+}
+
+func (g *GithubSyncSpec) Valid() bool {
+	return g.SecretName != "" && g.Owner != "" && g.Repository != ""
+}
+
+type UserSyncStatus struct {
+	Conditions []genericcondition.GenericCondition `json:"conditions,omitempty"`
 }

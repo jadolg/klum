@@ -49,6 +49,7 @@ func Register(ctx context.Context,
 	secrets v1controller.SecretController,
 	kconfig v1alpha1.KubeconfigController,
 	user v1alpha1.UserController,
+	userSync v1alpha1.UserSyncController,
 	k8sversion *version.Info) {
 
 	h := &handler{
@@ -58,6 +59,7 @@ func Register(ctx context.Context,
 		k8sversion:      k8sversion,
 		kconfig:         kconfig,
 		kuser:           user,
+		kuserSync:       userSync,
 	}
 
 	v1alpha1.RegisterUserGeneratingHandler(ctx,
@@ -70,9 +72,21 @@ func Register(ctx context.Context,
 			AllowClusterScoped: true,
 		})
 
+	v1alpha1.RegisterUserSyncGeneratingHandler(
+		ctx,
+		userSync,
+		apply,
+		"",
+		"klum-usersync",
+		h.OnUserSyncChange,
+		&generic.GeneratingHandlerOptions{
+			AllowClusterScoped: true,
+		},
+	)
+
 	secrets.OnChange(ctx, "klum-secret", h.OnSecretChange)
-	user.OnRemove(ctx, "klum-user", h.OnUserRemoved)
 	kconfig.OnChange(ctx, "klum-kconfig", h.OnKubeconfigChange)
+	userSync.OnRemove(ctx, "klum-usersync", h.OnUserSyncRemove)
 }
 
 type handler struct {
@@ -82,6 +96,7 @@ type handler struct {
 	k8sversion      *version.Info
 	kuser           v1alpha1.UserController
 	kconfig         v1alpha1.KubeconfigController
+	kuserSync       v1alpha1.UserSyncController
 }
 
 func sanitizedVersion(v string) int {
@@ -97,10 +112,6 @@ func (h *handler) OnUserChange(user *klum.User, status klum.UserStatus) ([]runti
 	if user.Spec.Enabled != nil && !*user.Spec.Enabled {
 		status = setReady(status, false)
 		err := h.removeKubeconfig(user)
-		if err != nil {
-			log.Warning(err)
-		}
-		err = h.removeGitHubSecret(user)
 		if err != nil {
 			log.Warning(err)
 		}
@@ -263,9 +274,9 @@ func getUserNameForSecret(secret *v1.Secret, h *handler) (string, *v1.Secret, er
 }
 
 func (h *handler) OnSecretChange(key string, secret *v1.Secret) (*v1.Secret, error) {
-	userName, v, err2, done := getUserNameForSecret(secret, h)
+	userName, sec, err, done := getUserNameForSecret(secret, h)
 	if done {
-		return v, err2
+		return sec, err
 	}
 
 	ca := h.cfg.CA
@@ -313,25 +324,6 @@ func (h *handler) OnSecretChange(key string, secret *v1.Secret) (*v1.Secret, err
 		})
 }
 
-func (h *handler) OnUserRemoved(s string, user *klum.User) (*klum.User, error) {
-	err := h.removeKubeconfig(user)
-	if err != nil {
-		return user, err
-	}
-	h.removeGitHubSecret(user)
-	return nil, nil
-}
-
-func (h *handler) removeGitHubSecret(user *klum.User) error {
-	if h.cfg.GithubToken != "" {
-		err := github.DeleteGithubSecret(user, h.cfg.GithubURL, h.cfg.GithubToken)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func (h *handler) removeKubeconfig(user *klum.User) error {
 	_, err := h.kconfig.Get(user.Name, metav1.GetOptions{})
 	if err != nil {
@@ -349,19 +341,59 @@ func (h *handler) OnKubeconfigChange(s string, kubeconfig *klum.Kubeconfig) (*kl
 	if kubeconfig == nil {
 		return nil, nil
 	}
-	user, err := h.kuser.Get(s, metav1.GetOptions{})
+	// ToDo: Check how we can make `spec.user` usable as a field selector
+	userSyncs, err := h.kuserSync.List(metav1.ListOptions{})
 	if err != nil {
-		log.Error(err)
-		return kubeconfig, nil
+		return nil, err
 	}
-
-	if h.cfg.GithubToken != "" {
-		err := github.UploadGithubSecret(kubeconfig, user, h.cfg.GithubURL, h.cfg.GithubToken)
-		if err != nil {
-			return nil, err
+	for _, userSync := range userSyncs.Items {
+		if userSync.Spec.User == kubeconfig.Name {
+			log.Infof("Synchronizing credentials for %s", userSync.Name)
+			h.kuserSync.Enqueue(userSync.Name)
 		}
 	}
 	return kubeconfig, nil
+}
+
+func (h *handler) OnUserSyncChange(sync *klum.UserSync, s klum.UserSyncStatus) ([]runtime.Object, klum.UserSyncStatus, error) {
+	if sync == nil {
+		return nil, setSyncReady(s, false, nil), nil
+	}
+	if h.cfg.GithubToken != "" {
+		kubeconfig, err := h.kconfig.Get(sync.Spec.User, metav1.GetOptions{})
+		if err != nil {
+			return nil, setSyncReady(s, false, err), err
+		}
+
+		if kubeconfig != nil {
+			err = github.UploadGithubSecret(sync, kubeconfig, h.cfg.GithubURL, h.cfg.GithubToken)
+			if err != nil {
+				return nil, setSyncReady(s, false, err), err
+			}
+		} else {
+			return nil, setSyncReady(s, false, err), fmt.Errorf("kubeconfig for user %s is not yet ready", sync.Spec.User)
+		}
+	} else {
+		log.Warning("Github Synchronization is disabled but UserSync objects are created")
+	}
+
+	return []runtime.Object{}, setSyncReady(s, true, nil), nil
+}
+
+func (h *handler) OnUserSyncRemove(s string, sync *klum.UserSync) (*klum.UserSync, error) {
+	if sync == nil {
+		return nil, nil
+	}
+	if h.cfg.GithubToken != "" {
+		err := github.DeleteGithubSecret(sync, h.cfg.GithubURL, h.cfg.GithubToken)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		log.Warning("Github Synchronization is disabled but UserSync objects are created")
+	}
+
+	return nil, nil
 }
 
 func setReady(status klum.UserStatus, ready bool) klum.UserStatus {
@@ -369,4 +401,13 @@ func setReady(status klum.UserStatus, ready bool) klum.UserStatus {
 	user := &klum.User{Status: status}
 	klum.UserReadyCondition.SetStatusBool(user, ready)
 	return user.Status
+}
+
+func setSyncReady(status klum.UserSyncStatus, ready bool, err error) klum.UserSyncStatus {
+	userSync := &klum.UserSync{Status: status}
+	klum.UserSyncReadyCondition.SetStatusBool(userSync, ready)
+	if err != nil {
+		klum.UserSyncReadyCondition.SetError(userSync, err.Error(), err)
+	}
+	return userSync.Status
 }

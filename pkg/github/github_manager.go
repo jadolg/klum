@@ -3,21 +3,20 @@ package github
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/ghodss/yaml"
 	klum "github.com/jadolg/klum/pkg/apis/klum.cattle.io/v1alpha1"
 	log "github.com/sirupsen/logrus"
 )
 
-func UploadGithubSecret(kubeconfig *klum.Kubeconfig, user *klum.User, githubURL string, githubToken string) error {
-	if user.Spec.Sync.Github == nil {
-		return nil
-	}
-	if !user.Spec.Sync.Github.Valid() {
+func UploadGithubSecret(userSync *klum.UserSync, kubeconfig *klum.Kubeconfig, githubURL string, githubToken string) error {
+	githubSync := userSync.Spec.Github
+	if !githubSync.Valid() {
 		return fmt.Errorf("not enough github data to be able to create a GitHub secret")
 	}
 
-	log.Infof("Adding secret (%s) to GitHub for user %s to %s/%s", user.Spec.Sync.Github.SecretName, kubeconfig.Name, user.Spec.Sync.Github.Owner, user.Spec.Sync.Github.Repository)
+	log.Infof("Adding secret (%s) to GitHub for user %s to %s/%s %s", githubSync.SecretName, kubeconfig.Name, githubSync.Owner, githubSync.Repository, githubSync.Environment)
 
 	kubeconfigYAML, err := toYAMLString(kubeconfig.Spec)
 	if err != nil {
@@ -26,13 +25,15 @@ func UploadGithubSecret(kubeconfig *klum.Kubeconfig, user *klum.User, githubURL 
 
 	ctx := context.Background()
 
-	if user.Spec.Sync.Github.Environment == "" {
+	time.Sleep(time.Second) // Calling GitHub continuously creates problems. This adds a buffer so all operations succeed.
+
+	if githubSync.Environment == "" {
 		return createRepositorySecret(
 			ctx,
 			githubURL,
-			user.Spec.Sync.Github.Owner,
-			user.Spec.Sync.Github.Repository,
-			user.Spec.Sync.Github.SecretName,
+			githubSync.Owner,
+			githubSync.Repository,
+			githubSync.SecretName,
 			kubeconfigYAML,
 			githubToken,
 		)
@@ -40,41 +41,42 @@ func UploadGithubSecret(kubeconfig *klum.Kubeconfig, user *klum.User, githubURL 
 		return createRepositoryEnvSecret(
 			ctx,
 			githubURL,
-			user.Spec.Sync.Github.Owner,
-			user.Spec.Sync.Github.Repository,
-			user.Spec.Sync.Github.Environment,
-			user.Spec.Sync.Github.SecretName,
+			githubSync.Owner,
+			githubSync.Repository,
+			githubSync.Environment,
+			githubSync.SecretName,
 			kubeconfigYAML,
 			githubToken,
 		)
 	}
 }
 
-func DeleteGithubSecret(user *klum.User, githubURL string, githubToken string) error {
-	if !user.Spec.Sync.Github.Valid() {
+func DeleteGithubSecret(userSync *klum.UserSync, githubURL string, githubToken string) error {
+	githubSync := userSync.Spec.Github
+	if !githubSync.Valid() {
 		log.Info("Not enough github data to be able to remove a GitHub secret")
 		return nil
 	}
 
-	log.Infof("Deleting secret (%s) from GitHub for user %s in %s/%s", user.Spec.Sync.Github.SecretName, user.Name, user.Spec.Sync.Github.Owner, user.Spec.Sync.Github.Repository)
+	log.Infof("Deleting secret (%s) from GitHub for user %s in %s/%s %s", githubSync.SecretName, userSync.Spec.User, githubSync.Owner, githubSync.Repository, githubSync.Environment)
 	ctx := context.Background()
-	if user.Spec.Sync.Github.Environment == "" {
+	if githubSync.Environment == "" {
 		return deleteRepositorySecret(
 			ctx,
 			githubURL,
-			user.Spec.Sync.Github.Owner,
-			user.Spec.Sync.Github.Repository,
-			user.Spec.Sync.Github.SecretName,
+			githubSync.Owner,
+			githubSync.Repository,
+			githubSync.SecretName,
 			githubToken,
 		)
 	} else {
 		return deleteRepositoryEnvSecret(
 			ctx,
 			githubURL,
-			user.Spec.Sync.Github.Owner,
-			user.Spec.Sync.Github.Repository,
-			user.Spec.Sync.Github.Environment,
-			user.Spec.Sync.Github.SecretName,
+			githubSync.Owner,
+			githubSync.Repository,
+			githubSync.Environment,
+			githubSync.SecretName,
 			githubToken,
 		)
 	}

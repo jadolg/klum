@@ -152,6 +152,7 @@ func run(c *cli.Context) error {
 		core.Core().V1().Secret(),
 		klum.Klum().V1alpha1().Kubeconfig(),
 		klum.Klum().V1alpha1().User(),
+		klum.Klum().V1alpha1().UserSync(),
 		k8sversion,
 	)
 

@@ -30,6 +30,7 @@ import (
 var (
 	KubeconfigResourceName = "kubeconfigs"
 	UserResourceName       = "users"
+	UserSyncResourceName   = "usersyncs"
 )
 
 // SchemeGroupVersion is group version used to register these objects
@@ -57,6 +58,8 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&KubeconfigList{},
 		&User{},
 		&UserList{},
+		&UserSync{},
+		&UserSyncList{},
 	)
 	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
 	return nil
