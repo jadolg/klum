@@ -2,6 +2,7 @@ package github
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"time"
 
@@ -16,16 +17,23 @@ func UploadGithubSecret(userSync *klum.UserSync, kubeconfig *klum.Kubeconfig, gi
 		return fmt.Errorf("not enough github data to be able to create a GitHub secret")
 	}
 
-	log.Infof("Adding secret (%s) to GitHub for user %s to %s/%s %s", githubSync.SecretName, kubeconfig.Name, githubSync.Owner, githubSync.Repository, githubSync.Environment)
-
 	kubeconfigYAML, err := toYAMLString(kubeconfig.Spec)
 	if err != nil {
 		return err
 	}
 
-	ctx := context.Background()
+	kubeconfigYAMLb64 := base64.StdEncoding.EncodeToString([]byte(kubeconfigYAML))
 
+	latestKubeconfigUploaded, present := userSync.Annotations["klum.cattle.io/lastest.upload.github"]
+	if present && latestKubeconfigUploaded == kubeconfigYAMLb64 {
+		return nil
+	}
+	userSync.Annotations["klum.cattle.io/lastest.upload.github"] = kubeconfigYAMLb64
+
+	ctx := context.Background()
 	time.Sleep(time.Second) // Calling GitHub continuously creates problems. This adds a buffer so all operations succeed.
+
+	log.Infof("Adding secret (%s) to GitHub for user %s to %s/%s %s", githubSync.SecretName, kubeconfig.Name, githubSync.Owner, githubSync.Repository, githubSync.Environment)
 
 	if githubSync.Environment == "" {
 		return createRepositorySecret(

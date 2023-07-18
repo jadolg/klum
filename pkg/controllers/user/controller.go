@@ -370,6 +370,11 @@ func (h *handler) OnUserSyncChange(sync *klum.UserSync, s klum.UserSyncStatus) (
 			if err != nil {
 				return nil, setSyncReady(s, false, err), err
 			}
+
+			_, err := h.kuserSync.Update(sync)
+			if err != nil {
+				return nil, setSyncReady(s, false, err), err
+			}
 		} else {
 			return nil, setSyncReady(s, false, err), fmt.Errorf("kubeconfig for user %s is not yet ready", sync.Spec.User)
 		}
