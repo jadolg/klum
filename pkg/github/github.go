@@ -40,7 +40,7 @@ func getRepoID(ctx context.Context, client *github.Client, owner string, repo st
 	return repositoryID, nil
 }
 
-func encodeWithPublicKey(text string, publicKey string) (string, error) {
+func encodeWithPublicKey(text []byte, publicKey string) (string, error) {
 	publicKeyBytes, err := base64.StdEncoding.DecodeString(publicKey)
 	if err != nil {
 		return "", err
@@ -49,7 +49,7 @@ func encodeWithPublicKey(text string, publicKey string) (string, error) {
 	var publicKeyDecoded [32]byte
 	copy(publicKeyDecoded[:], publicKeyBytes)
 
-	encrypted, err := box.SealAnonymous(nil, []byte(text), (*[32]byte)(publicKeyBytes), rand.Reader)
+	encrypted, err := box.SealAnonymous(nil, text, (*[32]byte)(publicKeyBytes), rand.Reader)
 	if err != nil {
 		return "", err
 	}

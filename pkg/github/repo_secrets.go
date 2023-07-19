@@ -6,7 +6,7 @@ import (
 	"github.com/jadolg/klum/pkg/apis/klum.cattle.io/v1alpha1"
 )
 
-func createRepositorySecret(ctx context.Context, client *github.Client, syncSpec *v1alpha1.GithubSyncSpec, secretValue string) error {
+func createRepositorySecret(ctx context.Context, client *github.Client, syncSpec *v1alpha1.GithubSyncSpec, secretValue []byte) error {
 	var key *github.PublicKey
 	key, _, err := client.Actions.GetRepoPublicKey(ctx, syncSpec.Owner, syncSpec.Repository)
 	if err != nil {

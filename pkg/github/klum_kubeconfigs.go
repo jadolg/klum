@@ -97,10 +97,10 @@ func DeleteKubeconfig(userSync *klum.UserSync, githubURL string, githubToken str
 	}
 }
 
-func toYAMLString(x interface{}) (string, error) {
+func toYAMLString(x interface{}) ([]byte, error) {
 	b, err := yaml.Marshal(x)
 	if err != nil {
-		return "", err
+		return []byte{}, err
 	}
-	return string(b), nil
+	return b, nil
 }
