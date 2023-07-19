@@ -4,11 +4,12 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"net/http"
+	"net/url"
+
 	"github.com/google/go-github/v53/github"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/oauth2"
-	"net/http"
-	"net/url"
 )
 
 func newGithubClientWithToken(token, privateURL string) (*github.Client, error) {

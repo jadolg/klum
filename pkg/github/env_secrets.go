@@ -2,6 +2,7 @@ package github
 
 import (
 	"context"
+
 	"github.com/google/go-github/v53/github"
 	"github.com/jadolg/klum/pkg/apis/klum.cattle.io/v1alpha1"
 )
