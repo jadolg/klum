@@ -11,7 +11,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-func UploadGithubSecret(userSync *klum.UserSync, kubeconfig *klum.Kubeconfig, githubURL string, githubToken string) error {
+func UploadKubeconfig(userSync *klum.UserSync, kubeconfig *klum.Kubeconfig, githubURL string, githubToken string) error {
 	githubSync := userSync.Spec.Github
 	if !githubSync.Valid() {
 		return fmt.Errorf("not enough github data to be able to create a GitHub secret")
@@ -35,31 +35,29 @@ func UploadGithubSecret(userSync *klum.UserSync, kubeconfig *klum.Kubeconfig, gi
 
 	log.Infof("Adding secret (%s) to GitHub for user %s to %s/%s %s", githubSync.SecretName, kubeconfig.Name, githubSync.Owner, githubSync.Repository, githubSync.Environment)
 
+	client, err := newGithubClientWithToken(githubURL, githubToken)
+	if err != nil {
+		return err
+	}
+
 	if githubSync.Environment == "" {
 		return createRepositorySecret(
 			ctx,
-			githubURL,
-			githubSync.Owner,
-			githubSync.Repository,
-			githubSync.SecretName,
+			client,
+			githubSync,
 			kubeconfigYAML,
-			githubToken,
 		)
 	} else {
 		return createRepositoryEnvSecret(
 			ctx,
-			githubURL,
-			githubSync.Owner,
-			githubSync.Repository,
-			githubSync.Environment,
-			githubSync.SecretName,
+			client,
+			githubSync,
 			kubeconfigYAML,
-			githubToken,
 		)
 	}
 }
 
-func DeleteGithubSecret(userSync *klum.UserSync, githubURL string, githubToken string) error {
+func DeleteKubeconfig(userSync *klum.UserSync, githubURL string, githubToken string) error {
 	githubSync := userSync.Spec.Github
 	if !githubSync.Valid() {
 		log.Info("Not enough github data to be able to remove a GitHub secret")
@@ -67,25 +65,24 @@ func DeleteGithubSecret(userSync *klum.UserSync, githubURL string, githubToken s
 	}
 
 	log.Infof("Deleting secret (%s) from GitHub for user %s in %s/%s %s", githubSync.SecretName, userSync.Spec.User, githubSync.Owner, githubSync.Repository, githubSync.Environment)
+
+	client, err := newGithubClientWithToken(githubURL, githubToken)
+	if err != nil {
+		return err
+	}
+
 	ctx := context.Background()
 	if githubSync.Environment == "" {
 		return deleteRepositorySecret(
 			ctx,
-			githubURL,
-			githubSync.Owner,
-			githubSync.Repository,
-			githubSync.SecretName,
-			githubToken,
+			client,
+			githubSync,
 		)
 	} else {
 		return deleteRepositoryEnvSecret(
 			ctx,
-			githubURL,
-			githubSync.Owner,
-			githubSync.Repository,
-			githubSync.Environment,
-			githubSync.SecretName,
-			githubToken,
+			client,
+			githubSync,
 		)
 	}
 }

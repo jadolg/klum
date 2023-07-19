@@ -366,7 +366,7 @@ func (h *handler) OnUserSyncChange(sync *klum.UserSync, s klum.UserSyncStatus) (
 		}
 
 		if kubeconfig != nil {
-			err = github.UploadGithubSecret(sync, kubeconfig, h.cfg.GithubURL, h.cfg.GithubToken)
+			err = github.UploadKubeconfig(sync, kubeconfig, h.cfg.GithubURL, h.cfg.GithubToken)
 			if err != nil {
 				return nil, setSyncReady(s, false, err), err
 			}
@@ -394,7 +394,7 @@ func (h *handler) OnUserSyncRemove(s string, sync *klum.UserSync) (*klum.UserSyn
 		return nil, nil
 	}
 	if h.cfg.GithubToken != "" {
-		err := github.DeleteGithubSecret(sync, h.cfg.GithubURL, h.cfg.GithubToken)
+		err := github.DeleteKubeconfig(sync, h.cfg.GithubURL, h.cfg.GithubToken)
 		if err != nil {
 			return nil, err
 		}
