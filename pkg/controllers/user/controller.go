@@ -380,7 +380,7 @@ func (h *handler) OnUserSyncChange(sync *klum.UserSync, s klum.UserSyncStatus) (
 		}
 	} else {
 		log.WithFields(log.Fields{
-			"usersync": sync.Metadata.Name,
+			"usersync": sync.Name,
 		}).Warning("Github Synchronization is disabled but UserSync objects are created")
 		err := fmt.Errorf("GitHub Synchronization is disabled in klum")
 		return nil, setSyncReady(s, false, err), nil
