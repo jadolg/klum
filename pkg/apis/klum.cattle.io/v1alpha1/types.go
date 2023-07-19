@@ -133,9 +133,9 @@ type GithubSyncSpec struct {
 
 func (g *GithubSyncSpec) Validate() error {
 	if g.SecretName != "" && g.Owner != "" && g.Repository != "" {
-		return fmt.Errorf("not enough github data to be able to remove a GitHub secret")
+		return nil
 	}
-	return nil
+	return fmt.Errorf("not enough github data to be able to remove a GitHub secret")
 }
 
 type UserSyncStatus struct {
