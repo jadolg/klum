@@ -33,7 +33,12 @@ func UploadKubeconfig(userSync *klum.UserSync, kubeconfig *klum.Kubeconfig, gith
 	ctx := context.Background()
 	time.Sleep(time.Second) // Calling GitHub continuously creates problems. This adds a buffer so all operations succeed.
 
-	log.Infof("Adding secret (%s) to GitHub for user %s to %s/%s %s", githubSync.SecretName, kubeconfig.Name, githubSync.Owner, githubSync.Repository, githubSync.Environment)
+	log.WithFields(log.Fields{
+		"secret": githubSync.SecretName,
+		"user":   userSync.Spec.User,
+		"repo":   fmt.Sprintf("%s/%s", githubSync.Owner, githubSync.Repository),
+		"env":    githubSync.Environment,
+	}).Info("Adding secret")
 
 	client, err := newGithubClientWithToken(githubURL, githubToken)
 	if err != nil {
@@ -64,7 +69,12 @@ func DeleteKubeconfig(userSync *klum.UserSync, githubURL string, githubToken str
 		return nil
 	}
 
-	log.Infof("Deleting secret (%s) from GitHub for user %s in %s/%s %s", githubSync.SecretName, userSync.Spec.User, githubSync.Owner, githubSync.Repository, githubSync.Environment)
+	log.WithFields(log.Fields{
+		"secret": githubSync.SecretName,
+		"user":   userSync.Spec.User,
+		"repo":   fmt.Sprintf("%s/%s", githubSync.Owner, githubSync.Repository),
+		"env":    githubSync.Environment,
+	}).Info("Deleting secret")
 
 	client, err := newGithubClientWithToken(githubURL, githubToken)
 	if err != nil {
