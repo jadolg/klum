@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"fmt"
 	"net/http"
 	"net/url"
 
@@ -42,15 +43,12 @@ func getRepoID(ctx context.Context, client *github.Client, owner string, repo st
 }
 
 func encodeWithPublicKey(text []byte, publicKey string) (string, error) {
-	publicKeyBytes, err := base64.StdEncoding.DecodeString(publicKey)
+	publicKeyDecoded, err := decodeKeyString(publicKey)
 	if err != nil {
 		return "", err
 	}
 
-	var publicKeyDecoded [32]byte
-	copy(publicKeyDecoded[:], publicKeyBytes)
-
-	encrypted, err := box.SealAnonymous(nil, text, (*[32]byte)(publicKeyBytes), rand.Reader)
+	encrypted, err := box.SealAnonymous(nil, text, publicKeyDecoded, rand.Reader)
 	if err != nil {
 		return "", err
 	}
@@ -58,4 +56,18 @@ func encodeWithPublicKey(text []byte, publicKey string) (string, error) {
 	encryptedBase64 := base64.StdEncoding.EncodeToString(encrypted)
 
 	return encryptedBase64, nil
+}
+
+func decodeKeyString(publicKey string) (*[32]byte, error) {
+	publicKeyBytes, err := base64.StdEncoding.DecodeString(publicKey)
+	if err != nil {
+		return nil, err
+	}
+
+	var publicKeyDecoded [32]byte
+	if copy(publicKeyDecoded[:], publicKeyBytes) < 32 {
+		return nil, fmt.Errorf("not a full length key, want 32 bytes, got %d bytes: %q", len(publicKeyBytes), publicKey)
+	}
+
+	return &publicKeyDecoded, nil
 }
