@@ -23,11 +23,12 @@ func newGithubClientWithToken(token, privateURL string) (*github.Client, error) 
 
 	client := github.NewClient(httpClient)
 	if privateURL != "" {
-		baseUrl, err := url.Parse(privateURL + "/api/v3/")
+		baseURL, err := url.Parse(privateURL)
 		if err != nil {
 			return nil, err
 		}
-		client.BaseURL = baseUrl
+		baseURL.Path = strings.TrimSuffix(baseURL.Path, "/") + "/api/v3/"
+		client.BaseURL = baseURL
 	}
 	return client, nil
 }
