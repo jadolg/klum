@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ghodss/yaml"
 	klum "github.com/jadolg/klum/pkg/apis/klum.cattle.io/v1alpha1"
 	log "github.com/sirupsen/logrus"
+	"sigs.k8s.io/yaml"
 )
 
 func UploadGithubSecret(userSync *klum.UserSync, kubeconfig *klum.Kubeconfig, githubURL string, githubToken string) error {
