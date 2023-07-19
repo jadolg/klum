@@ -13,7 +13,7 @@ func createRepositorySecret(ctx context.Context, client *github.Client, syncSpec
 		return err
 	}
 
-	encryptedSecret, err := encodeWithPublicKey(secretValue, *key.Key)
+	encryptedSecret, err := encodeWithPublicKey(secretValue, key.GetKey())
 	if err != nil {
 		return err
 	}
