@@ -2,7 +2,7 @@ package github
 
 import (
 	"context"
-	"encoding/base64"
+	"crypto/sha256"
 	"fmt"
 	"time"
 
@@ -13,6 +13,9 @@ import (
 
 func UploadKubeconfig(userSync *klum.UserSync, kubeconfig *klum.Kubeconfig, githubURL string, githubToken string) error {
 	githubSync := userSync.Spec.Github
+	if githubSync == nil {
+		return nil
+	}
 	if err := githubSync.Validate(); err != nil {
 		return err
 	}
@@ -22,13 +25,11 @@ func UploadKubeconfig(userSync *klum.UserSync, kubeconfig *klum.Kubeconfig, gith
 		return err
 	}
 
-	kubeconfigYAMLb64 := base64.StdEncoding.EncodeToString([]byte(kubeconfigYAML))
+	upToDate, hash := isSecretUpToDate(userSync, kubeconfigYAML)
 
-	latestKubeconfigUploaded, present := userSync.Annotations["klum.cattle.io/lastest.upload.github"]
-	if present && latestKubeconfigUploaded == kubeconfigYAMLb64 {
+	if upToDate {
 		return nil
 	}
-	userSync.Annotations["klum.cattle.io/lastest.upload.github"] = kubeconfigYAMLb64
 
 	ctx := context.Background()
 	time.Sleep(time.Second) // Calling GitHub continuously creates problems. This adds a buffer so all operations succeed.
@@ -40,30 +41,52 @@ func UploadKubeconfig(userSync *klum.UserSync, kubeconfig *klum.Kubeconfig, gith
 		"env":    githubSync.Environment,
 	}).Info("Adding secret")
 
-	client, err := newGithubClientWithToken(githubURL, githubToken)
+	client, err := newGithubClientWithToken(githubToken, githubURL)
 	if err != nil {
 		return err
 	}
 
 	if githubSync.Environment == "" {
-		return createRepositorySecret(
+		err = createRepositorySecret(
 			ctx,
 			client,
 			githubSync,
 			kubeconfigYAML,
 		)
 	} else {
-		return createRepositoryEnvSecret(
+		err = createRepositoryEnvSecret(
 			ctx,
 			client,
 			githubSync,
 			kubeconfigYAML,
 		)
 	}
+
+	if err == nil {
+		userSync.Annotations["klum.cattle.io/lastest.upload.github"] = hash
+	}
+
+	return err
+}
+
+func isSecretUpToDate(userSync *klum.UserSync, kubeconfigYAML []byte) (bool, string) {
+	h := sha256.New()
+	h.Write(kubeconfigYAML)
+	hash := fmt.Sprintf("%x", h.Sum(nil))
+
+	latestKubeconfigUploaded, present := userSync.Annotations["klum.cattle.io/lastest.upload.github"]
+	if present && latestKubeconfigUploaded == hash {
+		return true, hash
+	}
+
+	return false, hash
 }
 
 func DeleteKubeconfig(userSync *klum.UserSync, githubURL string, githubToken string) error {
 	githubSync := userSync.Spec.Github
+	if githubSync == nil {
+		return nil
+	}
 	if err := githubSync.Validate(); err != nil {
 		return err
 	}
@@ -75,7 +98,7 @@ func DeleteKubeconfig(userSync *klum.UserSync, githubURL string, githubToken str
 		"env":    githubSync.Environment,
 	}).Info("Deleting secret")
 
-	client, err := newGithubClientWithToken(githubURL, githubToken)
+	client, err := newGithubClientWithToken(githubToken, githubURL)
 	if err != nil {
 		return err
 	}
