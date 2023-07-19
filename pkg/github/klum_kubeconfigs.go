@@ -13,8 +13,8 @@ import (
 
 func UploadKubeconfig(userSync *klum.UserSync, kubeconfig *klum.Kubeconfig, githubURL string, githubToken string) error {
 	githubSync := userSync.Spec.Github
-	if !githubSync.Valid() {
-		return fmt.Errorf("not enough github data to be able to create a GitHub secret")
+	if err := githubSync.Validate(); err != nil {
+		return err
 	}
 
 	kubeconfigYAML, err := toYAMLString(kubeconfig.Spec)
@@ -64,9 +64,8 @@ func UploadKubeconfig(userSync *klum.UserSync, kubeconfig *klum.Kubeconfig, gith
 
 func DeleteKubeconfig(userSync *klum.UserSync, githubURL string, githubToken string) error {
 	githubSync := userSync.Spec.Github
-	if !githubSync.Valid() {
-		log.Info("Not enough github data to be able to remove a GitHub secret")
-		return nil
+	if err := githubSync.Validate(); err != nil {
+		return err
 	}
 
 	log.WithFields(log.Fields{

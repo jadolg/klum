@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	"fmt"
 	"github.com/rancher/wrangler/pkg/condition"
 	"github.com/rancher/wrangler/pkg/genericcondition"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -130,8 +131,11 @@ type GithubSyncSpec struct {
 	SecretName  string `json:"secretName"`
 }
 
-func (g *GithubSyncSpec) Valid() bool {
-	return g.SecretName != "" && g.Owner != "" && g.Repository != ""
+func (g *GithubSyncSpec) Validate() error {
+	if g.SecretName != "" && g.Owner != "" && g.Repository != "" {
+		return fmt.Errorf("not enough github data to be able to remove a GitHub secret")
+	}
+	return nil
 }
 
 type UserSyncStatus struct {
