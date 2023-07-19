@@ -379,7 +379,11 @@ func (h *handler) OnUserSyncChange(sync *klum.UserSync, s klum.UserSyncStatus) (
 			return nil, setSyncReady(s, false, err), fmt.Errorf("kubeconfig for user %s is not yet ready", sync.Spec.User)
 		}
 	} else {
-		log.Warning("Github Synchronization is disabled but UserSync objects are created")
+		log.WithFields(log.Fields{
+			"usersync": sync.Metadata.Name,
+		}).Warning("Github Synchronization is disabled but UserSync objects are created")
+		err := fmt.Errorf("GitHub Synchronization is disabled in klum")
+		return nil, setSyncReady(s, false, err), nil
 	}
 
 	return []runtime.Object{}, setSyncReady(s, true, nil), nil
