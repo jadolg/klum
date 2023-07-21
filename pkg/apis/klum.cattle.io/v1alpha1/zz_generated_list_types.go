@@ -60,16 +60,16 @@ func NewKubeconfig(namespace, name string, obj Kubeconfig) *Kubeconfig {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// UserSyncList is a list of UserSync resources
-type UserSyncList struct {
+// UserSyncGithubList is a list of UserSyncGithub resources
+type UserSyncGithubList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata"`
 
-	Items []UserSync `json:"items"`
+	Items []UserSyncGithub `json:"items"`
 }
 
-func NewUserSync(namespace, name string, obj UserSync) *UserSync {
-	obj.APIVersion, obj.Kind = SchemeGroupVersion.WithKind("UserSync").ToAPIVersionAndKind()
+func NewUserSyncGithub(namespace, name string, obj UserSyncGithub) *UserSyncGithub {
+	obj.APIVersion, obj.Kind = SchemeGroupVersion.WithKind("UserSyncGithub").ToAPIVersionAndKind()
 	obj.Name = name
 	obj.Namespace = namespace
 	return &obj

@@ -11,7 +11,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-func UploadKubeconfig(userSync *klum.UserSync, kubeconfig *klum.Kubeconfig, githubURL string, githubToken string) error {
+func UploadKubeconfig(userSync *klum.UserSyncGithub, kubeconfig *klum.Kubeconfig, githubURL string, githubToken string) error {
 	githubSync := userSync.Spec.Github
 	if githubSync == nil {
 		return nil
@@ -69,7 +69,7 @@ func UploadKubeconfig(userSync *klum.UserSync, kubeconfig *klum.Kubeconfig, gith
 	return err
 }
 
-func isSecretUpToDate(userSync *klum.UserSync, kubeconfigYAML []byte) (bool, string) {
+func isSecretUpToDate(userSync *klum.UserSyncGithub, kubeconfigYAML []byte) (bool, string) {
 	h := sha256.New()
 	h.Write(kubeconfigYAML)
 	hash := fmt.Sprintf("%x", h.Sum(nil))
@@ -82,7 +82,7 @@ func isSecretUpToDate(userSync *klum.UserSync, kubeconfigYAML []byte) (bool, str
 	return false, hash
 }
 
-func DeleteKubeconfig(userSync *klum.UserSync, githubURL string, githubToken string) error {
+func DeleteKubeconfig(userSync *klum.UserSyncGithub, githubURL string, githubToken string) error {
 	githubSync := userSync.Spec.Github
 	if githubSync == nil {
 		return nil

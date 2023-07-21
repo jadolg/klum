@@ -113,14 +113,14 @@ type NamedContext struct {
 // +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-type UserSync struct {
+type UserSyncGithub struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              UserSyncSpec   `json:"spec"`
-	Status            UserSyncStatus `json:"status,omitempty"`
+	Spec              UserSyncGithubSpec `json:"spec"`
+	Status            UserSyncStatus     `json:"status,omitempty"`
 }
 
-type UserSyncSpec struct {
+type UserSyncGithubSpec struct {
 	User   string          `json:"user"`
 	Github *GithubSyncSpec `json:"github"`
 }
