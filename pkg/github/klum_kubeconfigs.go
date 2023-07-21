@@ -13,9 +13,6 @@ import (
 
 func UploadKubeconfig(userSync *klum.UserSyncGithub, kubeconfig *klum.Kubeconfig, githubURL string, githubToken string) error {
 	githubSync := userSync.Spec.Github
-	if githubSync == nil {
-		return nil
-	}
 	if err := githubSync.Validate(); err != nil {
 		return err
 	}
@@ -50,14 +47,14 @@ func UploadKubeconfig(userSync *klum.UserSyncGithub, kubeconfig *klum.Kubeconfig
 		err = createRepositorySecret(
 			ctx,
 			client,
-			githubSync,
+			&githubSync,
 			kubeconfigYAML,
 		)
 	} else {
 		err = createRepositoryEnvSecret(
 			ctx,
 			client,
-			githubSync,
+			&githubSync,
 			kubeconfigYAML,
 		)
 	}
@@ -84,9 +81,6 @@ func isSecretUpToDate(userSync *klum.UserSyncGithub, kubeconfigYAML []byte) (boo
 
 func DeleteKubeconfig(userSync *klum.UserSyncGithub, githubURL string, githubToken string) error {
 	githubSync := userSync.Spec.Github
-	if githubSync == nil {
-		return nil
-	}
 	if err := githubSync.Validate(); err != nil {
 		return err
 	}
@@ -108,13 +102,13 @@ func DeleteKubeconfig(userSync *klum.UserSyncGithub, githubURL string, githubTok
 		return deleteRepositorySecret(
 			ctx,
 			client,
-			githubSync,
+			&githubSync,
 		)
 	} else {
 		return deleteRepositoryEnvSecret(
 			ctx,
 			client,
-			githubSync,
+			&githubSync,
 		)
 	}
 }

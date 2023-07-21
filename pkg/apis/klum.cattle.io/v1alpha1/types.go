@@ -121,8 +121,8 @@ type UserSyncGithub struct {
 }
 
 type UserSyncGithubSpec struct {
-	User   string          `json:"user"`
-	Github *GithubSyncSpec `json:"github"`
+	User   string         `json:"user"`
+	Github GithubSyncSpec `json:"github"`
 }
 
 type GithubSyncSpec struct {
