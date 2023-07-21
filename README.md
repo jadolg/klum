@@ -87,7 +87,7 @@ spec:
     - namespace: default
       clusterRole: cluster-admin  
 ---
-kind: UserSync
+kind: UserSyncGithub
 apiVersion: klum.cattle.io/v1alpha1
 metadata:
   name: darren
