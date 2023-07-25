@@ -30,7 +30,8 @@ func (c *Config) Enabled() bool {
 func newGithubClient(cfg Config, owner, repo string) (*github.Client, error) {
 	if cfg.GithubToken != "" {
 		return newGithubClientWithToken(cfg.GithubToken, cfg.GithubURL)
-	} else if cfg.GithubAppID != 0 && cfg.GithubPrivateKeyFile != "" {
+	}
+	if cfg.GithubAppID != 0 && cfg.GithubPrivateKeyFile != "" {
 		installationID, err := getInstallationID(cfg, owner, repo)
 		if err != nil {
 			return nil, err
