@@ -21,18 +21,21 @@ type Config struct {
 	GithubToken          string
 	GithubPrivateKeyFile string
 	GithubAppID          int64
-	GithubInstallationID int64
 }
 
 func (c *Config) Enabled() bool {
-	return c.GithubToken != "" || (c.GithubInstallationID != 0 && c.GithubAppID != 0 && c.GithubPrivateKeyFile != "")
+	return c.GithubToken != "" || (c.GithubAppID != 0 && c.GithubPrivateKeyFile != "")
 }
 
-func newGithubClient(cfg Config) (*github.Client, error) {
+func newGithubClient(cfg Config, owner, repo string) (*github.Client, error) {
 	if cfg.GithubToken != "" {
 		return newGithubClientWithToken(cfg.GithubToken, cfg.GithubURL)
-	} else if cfg.GithubInstallationID != 0 && cfg.GithubAppID != 0 && cfg.GithubPrivateKeyFile != "" {
-		return newGithubClientWithApp(cfg.GithubPrivateKeyFile, cfg.GithubAppID, cfg.GithubInstallationID, cfg.GithubURL)
+	} else if cfg.GithubAppID != 0 && cfg.GithubPrivateKeyFile != "" {
+		installationID, err := getInstallationID(cfg, owner, repo)
+		if err != nil {
+			return nil, err
+		}
+		return newGithubClientWithApp(cfg.GithubPrivateKeyFile, cfg.GithubAppID, installationID, cfg.GithubURL)
 	}
 	return nil, fmt.Errorf("insufficient information provided. Github client can't be created")
 }
@@ -72,6 +75,27 @@ func newGithubClientWithApp(privateKeyFile string, appID int64, installationID i
 	return client, nil
 }
 
+func getInstallationID(cfg Config, owner string, repo string) (int64, error) {
+	itr, err := ghinstallation.NewAppsTransportKeyFromFile(http.DefaultTransport, cfg.GithubAppID, cfg.GithubPrivateKeyFile)
+	if err != nil {
+		return 0, err
+	}
+	err = injectAppTransportPrivateURL(cfg.GithubURL, itr)
+	if err != nil {
+		return 0, err
+	}
+	client := github.NewClient(&http.Client{Transport: itr})
+	err = injectGithubClientPrivateURL(cfg.GithubURL, client)
+	if err != nil {
+		return 0, err
+	}
+	installation, _, err := client.Apps.FindRepositoryInstallation(context.Background(), owner, repo)
+	if err != nil {
+		return 0, err
+	}
+	return *installation.ID, nil
+}
+
 func injectGithubClientPrivateURL(privateURL string, client *github.Client) error {
 	if privateURL != "" {
 		baseURL, err := getBaseURL(privateURL)
@@ -79,6 +103,17 @@ func injectGithubClientPrivateURL(privateURL string, client *github.Client) erro
 			return err
 		}
 		client.BaseURL = baseURL
+	}
+	return nil
+}
+
+func injectAppTransportPrivateURL(privateURL string, transport *ghinstallation.AppsTransport) error {
+	if privateURL != "" {
+		baseURL, err := getBaseURL(privateURL)
+		if err != nil {
+			return err
+		}
+		transport.BaseURL = baseURL.String()
 	}
 	return nil
 }

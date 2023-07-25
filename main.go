@@ -103,13 +103,6 @@ func main() {
 			Value:       0,
 			Destination: &cfg.GithubConfig.GithubAppID,
 		},
-		cli.Int64Flag{
-			Name:        "github-app-installation-id",
-			Usage:       "GitHub app installation id if you are using App based authentication",
-			EnvVar:      "GITHUB_APP_INSTALLATION_ID",
-			Value:       0,
-			Destination: &cfg.GithubConfig.GithubInstallationID,
-		},
 	}
 	app.Action = run
 

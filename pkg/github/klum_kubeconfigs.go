@@ -38,7 +38,7 @@ func UploadKubeconfig(userSync *klum.UserSyncGithub, kubeconfig *klum.Kubeconfig
 		"env":    githubSync.Environment,
 	}).Info("Adding secret")
 
-	client, err := newGithubClient(cfg)
+	client, err := newGithubClient(cfg, githubSync.Owner, githubSync.Repository)
 	if err != nil {
 		return err
 	}
@@ -92,7 +92,7 @@ func DeleteKubeconfig(userSync *klum.UserSyncGithub, cfg Config) error {
 		"env":    githubSync.Environment,
 	}).Info("Deleting secret")
 
-	client, err := newGithubClient(cfg)
+	client, err := newGithubClient(cfg, githubSync.Owner, githubSync.Repository)
 	if err != nil {
 		return err
 	}

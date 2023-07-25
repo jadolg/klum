@@ -117,7 +117,6 @@ GLOBAL OPTIONS:
    --github-url value                   The GitHub URL if you are using GitHub enterprise [$GITHUB_URL]
    --github-app-private-key-file value  GitHub private key file if you are using App based authentication [$GITHUB_APP_PRIVATE_KEY_FILE]
    --github-app-id value                GitHub app id if you are using App based authentication (default: 0) [$GITHUB_APP_ID]
-   --github-app-installation-id value   GitHub app installation id if you are using App based authentication (default: 0) [$GITHUB_APP_INSTALLATION_ID]
 ```
 
 ## Building
