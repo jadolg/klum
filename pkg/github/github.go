@@ -17,26 +17,26 @@ import (
 )
 
 type Config struct {
-	GithubURL            string
-	GithubToken          string
-	GithubPrivateKeyFile string
-	GithubAppID          int64
+	BaseURL        string
+	Token          string
+	PrivateKeyFile string
+	AppID          int64
 }
 
 func (c *Config) Enabled() bool {
-	return c.GithubToken != "" || (c.GithubAppID != 0 && c.GithubPrivateKeyFile != "")
+	return c.Token != "" || (c.AppID != 0 && c.PrivateKeyFile != "")
 }
 
 func newGithubClient(cfg Config, owner, repo string) (*github.Client, error) {
-	if cfg.GithubToken != "" {
-		return newGithubClientWithToken(cfg.GithubToken, cfg.GithubURL)
+	if cfg.Token != "" {
+		return newGithubClientWithToken(cfg.Token, cfg.BaseURL)
 	}
-	if cfg.GithubAppID != 0 && cfg.GithubPrivateKeyFile != "" {
+	if cfg.AppID != 0 && cfg.PrivateKeyFile != "" {
 		installationID, err := getInstallationID(cfg, owner, repo)
 		if err != nil {
 			return nil, err
 		}
-		return newGithubClientWithApp(cfg.GithubPrivateKeyFile, cfg.GithubAppID, installationID, cfg.GithubURL)
+		return newGithubClientWithApp(cfg.PrivateKeyFile, cfg.AppID, installationID, cfg.BaseURL)
 	}
 	return nil, fmt.Errorf("insufficient information provided. Github client can't be created")
 }
@@ -77,16 +77,16 @@ func newGithubClientWithApp(privateKeyFile string, appID int64, installationID i
 }
 
 func getInstallationID(cfg Config, owner string, repo string) (int64, error) {
-	itr, err := ghinstallation.NewAppsTransportKeyFromFile(http.DefaultTransport, cfg.GithubAppID, cfg.GithubPrivateKeyFile)
+	itr, err := ghinstallation.NewAppsTransportKeyFromFile(http.DefaultTransport, cfg.AppID, cfg.PrivateKeyFile)
 	if err != nil {
 		return 0, err
 	}
-	err = injectAppTransportPrivateURL(cfg.GithubURL, itr)
+	err = injectAppTransportPrivateURL(cfg.BaseURL, itr)
 	if err != nil {
 		return 0, err
 	}
 	client := github.NewClient(&http.Client{Transport: itr})
-	err = injectGithubClientPrivateURL(cfg.GithubURL, client)
+	err = injectGithubClientPrivateURL(cfg.BaseURL, client)
 	if err != nil {
 		return 0, err
 	}
