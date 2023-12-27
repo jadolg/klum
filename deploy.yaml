@@ -29,7 +29,7 @@ spec:
         env:
           - name: CONTEXT_NAME
             value: mycluster
-          - name: SERVER
+          - name: SERVER_NAME
             value: https://myserver.example.com:6443
           - name: NAMESPACE
             value: klum
