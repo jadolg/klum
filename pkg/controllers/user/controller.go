@@ -29,7 +29,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 type Config struct {
@@ -87,6 +86,7 @@ func Register(ctx context.Context,
 	)
 
 	secrets.OnChange(ctx, "klum-secret", h.OnSecretChange)
+	secrets.OnRemove(ctx, "klum-secret", h.OnSecretRemoved)
 	kconfig.OnChange(ctx, "klum-kconfig", h.OnKubeconfigChange)
 	userSyncGithub.OnRemove(ctx, "klum-usersync", h.OnUserSyncGithubRemove)
 }
@@ -248,38 +248,36 @@ func name(user, namespace, clusterRole, role string) string {
 	return name2.SafeConcatName("klum", user, role, hex.EncodeToString(suffix[:])[:8])
 }
 
-func getUserNameForSecret(secret *v1.Secret, h *handler) (string, *v1.Secret, bool) {
+func getUserNameForSecret(secret *v1.Secret) string {
 	if secret == nil {
-		return "", nil, true
+		return ""
 	}
 
 	if secret.Type != v1.SecretTypeServiceAccountToken {
-		return "", secret, true
+		return ""
 	}
 
-	sa, err := h.serviceAccounts.Get(secret.Namespace, secret.Annotations["kubernetes.io/service-account.name"])
-	if errors.IsNotFound(err) {
-		return "", secret, true
-	} else if err != nil {
-		return "", secret, true
+	if klumUserAnnotation, present := secret.Annotations["objectset.rio.cattle.io/id"]; present && klumUserAnnotation == "klum-user" {
+		if username, present := secret.Annotations["objectset.rio.cattle.io/owner-name"]; present {
+			return username
+		}
+		return ""
 	}
+	return ""
+}
 
-	if sa.UID != types.UID(secret.Annotations["kubernetes.io/service-account.uid"]) {
-		return "", secret, true
+func getUserByName(name string, h *handler) (*klum.User, error) {
+	user, err := h.kuser.Get(name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
 	}
-
-	userName := sa.Annotations["klum.cattle.io/user"]
-	if userName == "" {
-		return "", secret, true
-	}
-
-	return userName, nil, false
+	return user, nil
 }
 
 func (h *handler) OnSecretChange(key string, secret *v1.Secret) (*v1.Secret, error) {
-	userName, sec, done := getUserNameForSecret(secret, h)
-	if done {
-		return sec, nil
+	userName := getUserNameForSecret(secret)
+	if userName == "" {
+		return secret, nil
 	}
 
 	ca := h.cfg.CA
@@ -287,6 +285,12 @@ func (h *handler) OnSecretChange(key string, secret *v1.Secret) (*v1.Secret, err
 		ca = base64.StdEncoding.EncodeToString(secret.Data["ca.crt"])
 	}
 	token := string(secret.Data["token"])
+
+	contextName := h.cfg.ContextName
+	user, err := getUserByName(userName, h)
+	if err == nil && user.Spec.Context != "" {
+		contextName = user.Spec.Context
+	}
 
 	return secret, h.apply.
 		WithOwner(secret).
@@ -315,14 +319,14 @@ func (h *handler) OnSecretChange(key string, secret *v1.Secret) (*v1.Secret, err
 				},
 				Contexts: []klum.NamedContext{
 					{
-						Name: h.cfg.ContextName,
+						Name: contextName,
 						Context: klum.Context{
 							Cluster:  h.cfg.ContextName,
 							AuthInfo: userName,
 						},
 					},
 				},
-				CurrentContext: h.cfg.ContextName,
+				CurrentContext: contextName,
 			},
 		})
 }
@@ -428,4 +432,26 @@ func setSyncGithubReady(status klum.UserSyncStatus, ready bool, err error) klum.
 		klum.UserSyncReadyCondition.SetError(userSync, err.Error(), err)
 	}
 	return userSync.Status
+}
+
+func (h *handler) OnSecretRemoved(key string, secret *v1.Secret) (*v1.Secret, error) {
+	userName := getUserNameForSecret(secret)
+	if userName == "" {
+		return secret, nil
+	}
+
+	_, err := h.kconfig.Get(userName, metav1.GetOptions{})
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return secret, nil
+		}
+		return secret, err
+	}
+
+	err = h.kconfig.Delete(userName, &metav1.DeleteOptions{})
+	if err != nil {
+		return secret, err
+	}
+
+	return secret, nil
 }

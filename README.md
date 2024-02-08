@@ -71,6 +71,20 @@ spec:
   enabled: false
 ```
 
+### Use a different context name
+You might want to use a different context name in the kubeconfig.  You can do this
+by setting the `context` field in the User spec. The cluster name will still be the
+context name passed to klum.
+```yaml
+kind: User
+apiVersion: klum.cattle.io/v1alpha1
+metadata:
+  name: darren
+spec:
+  context: my-context
+```
+
+
 ### Upload kubeconfig to GitHub secrets
 
 In order to upload Kubeconfigs to GitHub you need to start klum with a valid GitHub token `--github-token` and add the following `sync` settings to your User.
