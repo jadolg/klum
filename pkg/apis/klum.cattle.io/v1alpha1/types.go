@@ -28,6 +28,7 @@ type UserSpec struct {
 	Enabled      *bool           `json:"enabled,omitempty"`
 	ClusterRoles []string        `json:"clusterRoles,omitempty"`
 	Roles        []NamespaceRole `json:"roles,omitempty"`
+	Context      string          `json:"context,omitempty"`
 }
 
 type UserStatus struct {
