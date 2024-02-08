@@ -288,8 +288,16 @@ func (h *handler) OnSecretChange(key string, secret *v1.Secret) (*v1.Secret, err
 
 	contextName := h.cfg.ContextName
 	user, err := getUserByName(userName, h)
-	if err == nil && user.Spec.Context != "" {
-		contextName = user.Spec.Context
+	if err == nil {
+		if user.Spec.Context == "" {
+			user.Spec.Context = contextName
+			_, err := h.kuser.Update(user)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			contextName = user.Spec.Context
+		}
 	}
 
 	return secret, h.apply.
