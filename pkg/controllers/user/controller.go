@@ -287,17 +287,14 @@ func (h *handler) OnSecretChange(key string, secret *v1.Secret) (*v1.Secret, err
 	token := string(secret.Data["token"])
 
 	contextName := h.cfg.ContextName
+	contextNamespace := "default"
 	user, err := getUserByName(userName, h)
 	if err == nil {
-		if user.Spec.Context == "" {
-			user.Spec.Context = contextName
-			_, err := h.kuser.Update(user)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			contextName = user.Spec.Context
+		if err := h.updateUserDefaults(user); err != nil {
+			return nil, err
 		}
+		contextName = user.Spec.Context
+		contextNamespace = user.Spec.ContextNamespace
 	}
 
 	return secret, h.apply.
@@ -329,14 +326,48 @@ func (h *handler) OnSecretChange(key string, secret *v1.Secret) (*v1.Secret, err
 					{
 						Name: contextName,
 						Context: klum.Context{
-							Cluster:  h.cfg.ContextName,
-							AuthInfo: userName,
+							Cluster:   h.cfg.ContextName,
+							AuthInfo:  userName,
+							Namespace: contextNamespace,
 						},
 					},
 				},
 				CurrentContext: contextName,
 			},
 		})
+}
+
+func (h *handler) updateUserDefaults(user *klum.User) error {
+	anyChanges := false
+
+	if user.Spec.Context == "" {
+		user.Spec.Context = h.cfg.ContextName
+		anyChanges = true
+	}
+
+	if user.Spec.ContextNamespace == "" {
+		user.Spec.ContextNamespace = getUserDefaultNamespace(user)
+		anyChanges = true
+	}
+
+	if !anyChanges {
+		return nil
+	}
+
+	_, err := h.kuser.Update(user)
+	return err
+}
+
+func getUserDefaultNamespace(user *klum.User) string {
+	if user.Spec.ContextNamespace != "" {
+		return user.Spec.ContextNamespace
+	}
+	for _, role := range user.Spec.Roles {
+		if role.Namespace != "" {
+			return role.Namespace
+		}
+	}
+	return "default"
 }
 
 func (h *handler) removeKubeconfig(user *klum.User) error {
