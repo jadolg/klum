@@ -25,10 +25,11 @@ type User struct {
 }
 
 type UserSpec struct {
-	Enabled      *bool           `json:"enabled,omitempty"`
-	ClusterRoles []string        `json:"clusterRoles,omitempty"`
-	Roles        []NamespaceRole `json:"roles,omitempty"`
-	Context      string          `json:"context,omitempty"`
+	Enabled          *bool           `json:"enabled,omitempty"`
+	ClusterRoles     []string        `json:"clusterRoles,omitempty"`
+	Roles            []NamespaceRole `json:"roles,omitempty"`
+	Context          string          `json:"context,omitempty"`
+	ContextNamespace string          `json:"contextNamespace,omitempty"`
 }
 
 type UserStatus struct {
@@ -100,6 +101,8 @@ type Context struct {
 	Cluster string `json:"cluster"`
 	// AuthInfo is the name of the authInfo for this context
 	AuthInfo string `json:"user"`
+	// Namespace is the name of the current namespace for this context
+	Namespace string `json:"namespace,omitempty"`
 }
 
 // NamedContext relates nicknames to context information

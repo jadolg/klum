@@ -72,9 +72,11 @@ spec:
 ```
 
 ### Use a different context name
+
 You might want to use a different context name in the kubeconfig.  You can do this
 by setting the `context` field in the User spec. The cluster name will still be the
 context name passed to klum.
+
 ```yaml
 kind: User
 apiVersion: klum.cattle.io/v1alpha1
@@ -84,6 +86,23 @@ spec:
   context: my-context
 ```
 
+### Use a different context namespace
+
+Klum will by default set the namespace field of the kubeconfig context to
+the first namespace it finds in `User`'s `spec.roles[].namespace` field,
+or fallback to namespace `default` if the user is not assigned to any namespace.
+
+You can override the kubeconfig context's namespace by setting
+the `contextNamespace` field in the User spec.
+
+```yaml
+kind: User
+apiVersion: klum.cattle.io/v1alpha1
+metadata:
+  name: darren
+spec:
+  contextNamespace: my-namespace
+```
 
 ### Upload kubeconfig to GitHub secrets
 
