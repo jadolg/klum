@@ -86,9 +86,9 @@ func Register(ctx context.Context,
 	)
 
 	secrets.OnChange(ctx, "klum-secret", h.OnSecretChange)
-	secrets.OnRemove(ctx, "klum-secret", h.OnSecretRemoved)
 	kconfig.OnChange(ctx, "klum-kconfig", h.OnKubeconfigChange)
 	userSyncGithub.OnRemove(ctx, "klum-usersync", h.OnUserSyncGithubRemove)
+	user.OnRemove(ctx, "klum-user", h.OnUserRemoved)
 }
 
 type handler struct {
@@ -473,24 +473,19 @@ func setSyncGithubReady(status klum.UserSyncStatus, ready bool, err error) klum.
 	return userSync.Status
 }
 
-func (h *handler) OnSecretRemoved(key string, secret *v1.Secret) (*v1.Secret, error) {
-	userName := getUserNameForSecret(secret)
-	if userName == "" {
-		return secret, nil
-	}
-
-	_, err := h.kconfig.Get(userName, metav1.GetOptions{})
+func (h *handler) OnUserRemoved(key string, user *klum.User) (*klum.User, error) {
+	_, err := h.kconfig.Get(user.Name, metav1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
-			return secret, nil
+			return user, nil
 		}
-		return secret, err
+		return user, err
 	}
 
-	err = h.kconfig.Delete(userName, &metav1.DeleteOptions{})
+	err = h.kconfig.Delete(user.Name, &metav1.DeleteOptions{})
 	if err != nil {
-		return secret, err
+		return user, err
 	}
 
-	return secret, nil
+	return user, nil
 }
