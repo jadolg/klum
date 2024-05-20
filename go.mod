@@ -7,7 +7,7 @@ replace github.com/rancher/wrangler-api => github.com/dylanhitt/wrangler-api v0.
 require (
 	github.com/bradleyfalzon/ghinstallation/v2 v2.10.0
 	github.com/google/go-github/v53 v53.2.0
-	github.com/prometheus/client_golang v1.19.0
+	github.com/prometheus/client_golang v1.19.1
 	github.com/rancher/lasso v0.0.0-20230830164424-d684fdeb6f29
 	github.com/rancher/wrangler v1.1.2
 	github.com/rancher/wrangler-api v0.6.0
