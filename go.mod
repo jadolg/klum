@@ -18,7 +18,7 @@ require (
 	github.com/urfave/cli v1.22.15
 	golang.org/x/crypto v0.25.0
 	golang.org/x/oauth2 v0.21.0
-	k8s.io/api v0.30.2
+	k8s.io/api v0.30.3
 	k8s.io/apiextensions-apiserver v0.29.3
 	k8s.io/apimachinery v0.30.3
 	k8s.io/client-go v0.30.2
