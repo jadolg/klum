@@ -46,4 +46,4 @@ jobs:
     - name: Test
       shell: bash
       run: |
-        ./tests/test_admin.sh
+        ./tests/tests.sh

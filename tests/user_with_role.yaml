@@ -1,0 +1,9 @@
+kind: User
+apiVersion: klum.cattle.io/v1alpha1
+metadata:
+  name: user2
+spec:
+  enabled: true
+  roles:
+    - namespace: default
+      clusterRole: cluster-admin
