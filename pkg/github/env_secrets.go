@@ -3,6 +3,7 @@ package github
 import (
 	"context"
 	"errors"
+
 	"github.com/google/go-github/v63/github"
 	"github.com/jadolg/klum/pkg/apis/klum.cattle.io/v1alpha1"
 	log "github.com/sirupsen/logrus"
