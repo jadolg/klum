@@ -1,0 +1,39 @@
+name: Test
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod
+        cache: true
+
+    - name: Create k8s Kind Cluster
+      uses: helm/kind-action@v1
+      with:
+        cluster_name: kind
+
+    - name: Check cluster status
+      run: kubectl get all -A
+
+    - name: Run klum in the background
+      run: |
+        SERVER_NAME=$(kind get kubeconfig | yq .clusters[0].cluster.server) go run main.go &
+      env:
+        NAMESPACE: default
+
+    - name: Test
+      shell: bash
+      run: |
+        ./tests/tests.sh
