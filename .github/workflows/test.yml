@@ -27,7 +27,7 @@ jobs:
 
     - name: Run klum in the background
       run: |
-        go run main.go &
+        SERVER_NAME=$(kind get kubeconfig | yq .clusters[0].cluster.server) go run main.go &
         max_attempts=10
         for ((i=1; i<=max_attempts; i++)); do
           if kubectl get crd users.klum.cattle.io; then
@@ -40,3 +40,8 @@ jobs:
         done
       env:
         NAMESPACE: default
+
+    - name: Test
+      shell: bash
+      run: |
+        ./tests/test_admin.sh
