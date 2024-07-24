@@ -18,11 +18,15 @@ func createRepositoryEnvSecret(ctx context.Context, client *github.Client, syncS
 	}
 
 	_, _, err = client.Repositories.GetEnvironment(ctx, syncSpec.Owner, syncSpec.Repository, syncSpec.Environment)
-	var ghErr *github.ErrorResponse
-	if errors.As(err, &ghErr) && ghErr.Response.StatusCode == 404 {
-		log.WithFields(log.Fields{"environment": syncSpec.Environment, "repository": syncSpec.Repository}).Warn("Environment not found. Creating new environment.")
-		_, _, err = client.Repositories.CreateUpdateEnvironment(ctx, syncSpec.Owner, syncSpec.Repository, syncSpec.Environment, &github.CreateUpdateEnvironment{})
-		if err != nil {
+	if err != nil {
+		var ghErr *github.ErrorResponse
+		if errors.As(err, &ghErr) && ghErr.Response.StatusCode == 404 {
+			log.WithFields(log.Fields{"environment": syncSpec.Environment, "repository": syncSpec.Repository}).Warn("Environment not found. Creating new environment.")
+			_, _, err = client.Repositories.CreateUpdateEnvironment(ctx, syncSpec.Owner, syncSpec.Repository, syncSpec.Environment, &github.CreateUpdateEnvironment{})
+			if err != nil {
+				return err
+			}
+		} else {
 			return err
 		}
 	}
