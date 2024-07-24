@@ -30,18 +30,6 @@ jobs:
     - name: Run klum in the background
       run: |
         SERVER_NAME=$(kind get kubeconfig | yq .clusters[0].cluster.server) go run main.go &
-        max_attempts=10
-        for ((i=1; i<=max_attempts; i++)); do
-          if kubectl get crd users.klum.cattle.io; then
-            echo "Command succeeded"
-            break
-          else
-            echo "Attempt $i failed"
-          fi
-          sleep 3
-        done
-      env:
-        NAMESPACE: default
 
     - name: Test
       shell: bash

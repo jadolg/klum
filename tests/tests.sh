@@ -3,6 +3,9 @@
 set -euo pipefail
 source ./tests/testing.sh
 
+echo "Waiting for klum to start"
+eventually kubectl get crd users.klum.cattle.io
+
 echo "======================================================================================"
 echo "When an admin user is created, it should have access to all resources in the cluster"
 echo "======================================================================================"
