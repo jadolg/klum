@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
-source ./testing.sh
+source ./tests/testing.sh
 
 echo "====================================================================================="
 echo "When an admin user is created, it should have access to all resources in the cluster"
