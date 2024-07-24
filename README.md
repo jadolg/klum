@@ -16,6 +16,10 @@ configured this should work on any Kubernetes cluster.
 kubectl apply -f https://raw.githubusercontent.com/jadolg/klum/master/deploy.yaml
 ```
 
+or
+
+You can use the helm chart https://jadolg.github.io/helm-klum/
+
 ## Usage
  
 ### Create User
