@@ -19,12 +19,14 @@ jobs:
         go-version-file: go.mod
         cache: true
 
-    - name: Build
-      run: go build -v ./...
-
     - name: Create k8s Kind Cluster
       uses: helm/kind-action@v1
 
     - name: Check cluster status
+      run: kubectl get all -A
+
+    - name: Run klum in the background
       run: |
-        kubectl get all -A
+        go run main.go
+      env:
+        NAMESPACE: default
