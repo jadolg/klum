@@ -11,6 +11,8 @@ kubectl apply -f tests/admin_user.yaml
 assert "$(kubectl get user user1 -o jsonpath='{.metadata.name}')" "user1"
 assert "$(kubectl get user user1 -o jsonpath='{.spec.enabled}')" "true"
 
+eventually kubectl get kubeconfig user1
+
 kubectl get kubeconfig user1 -o json | jq .spec > kubeconfig
 kubectl get all --kubeconfig kubeconfig --namespace default
 kubectl get all --kubeconfig kubeconfig --namespace kube-system
@@ -39,6 +41,8 @@ echo "==========================================================================
 kubectl apply -f tests/user_with_role.yaml
 assert "$(kubectl get user user2 -o jsonpath='{.metadata.name}')" "user2"
 assert "$(kubectl get user user2 -o jsonpath='{.spec.roles[0]}')" "{\"clusterRole\":\"cluster-admin\",\"namespace\":\"default\"}"
+
+eventually kubectl get kubeconfig user2
 
 kubectl get kubeconfig user2 -o json | jq .spec > kubeconfig
 kubectl get all --kubeconfig kubeconfig --namespace default

@@ -13,3 +13,18 @@ function assert_fail() {
         echo "Test passed: command failed as expected"
     fi
 }
+
+function eventually() {
+    max_attempts=5
+    for ((i=1; i<=max_attempts; i++)); do
+      if "$@"; then
+        echo "Command succeeded"
+        return 0
+      else
+        echo "Attempt $i failed"
+      fi
+      sleep 3
+    done
+    echo "Command failed after $max_attempts attempts"
+    exit 1
+}
