@@ -21,7 +21,8 @@ package v1alpha1
 import (
 	v1alpha1 "github.com/jadolg/klum/pkg/apis/klum.cattle.io/v1alpha1"
 	"github.com/rancher/lasso/pkg/controller"
-	"github.com/rancher/wrangler/pkg/schemes"
+	"github.com/rancher/wrangler/v3/pkg/generic"
+	"github.com/rancher/wrangler/v3/pkg/schemes"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -45,12 +46,14 @@ type version struct {
 	controllerFactory controller.SharedControllerFactory
 }
 
-func (c *version) Kubeconfig() KubeconfigController {
-	return NewKubeconfigController(schema.GroupVersionKind{Group: "klum.cattle.io", Version: "v1alpha1", Kind: "Kubeconfig"}, "kubeconfigs", false, c.controllerFactory)
+func (v *version) Kubeconfig() KubeconfigController {
+	return generic.NewNonNamespacedController[*v1alpha1.Kubeconfig, *v1alpha1.KubeconfigList](schema.GroupVersionKind{Group: "klum.cattle.io", Version: "v1alpha1", Kind: "Kubeconfig"}, "kubeconfigs", v.controllerFactory)
 }
-func (c *version) User() UserController {
-	return NewUserController(schema.GroupVersionKind{Group: "klum.cattle.io", Version: "v1alpha1", Kind: "User"}, "users", false, c.controllerFactory)
+
+func (v *version) User() UserController {
+	return generic.NewNonNamespacedController[*v1alpha1.User, *v1alpha1.UserList](schema.GroupVersionKind{Group: "klum.cattle.io", Version: "v1alpha1", Kind: "User"}, "users", v.controllerFactory)
 }
-func (c *version) UserSyncGithub() UserSyncGithubController {
-	return NewUserSyncGithubController(schema.GroupVersionKind{Group: "klum.cattle.io", Version: "v1alpha1", Kind: "UserSyncGithub"}, "usersyncgithubs", false, c.controllerFactory)
+
+func (v *version) UserSyncGithub() UserSyncGithubController {
+	return generic.NewNonNamespacedController[*v1alpha1.UserSyncGithub, *v1alpha1.UserSyncGithubList](schema.GroupVersionKind{Group: "klum.cattle.io", Version: "v1alpha1", Kind: "UserSyncGithub"}, "usersyncgithubs", v.controllerFactory)
 }

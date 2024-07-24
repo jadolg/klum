@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/jadolg/klum/pkg/apis/klum.cattle.io/v1alpha1"
-	"github.com/rancher/wrangler/pkg/schemas/openapi"
+	"github.com/rancher/wrangler/v3/pkg/schemas/openapi"
 
-	"github.com/rancher/wrangler/pkg/crd"
+	"github.com/rancher/wrangler/v3/pkg/crd"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/client-go/rest"
 )
