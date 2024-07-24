@@ -27,6 +27,16 @@ jobs:
 
     - name: Run klum in the background
       run: |
-        go run main.go
+        go run main.go &
+        max_attempts=10
+        for ((i=1; i<=max_attempts; i++)); do
+          if kubectl get crd users.klum.cattle.io; then
+            echo "Command succeeded"
+            break
+          else
+            echo "Attempt $i failed"
+          fi
+          sleep 3
+        done
       env:
         NAMESPACE: default
