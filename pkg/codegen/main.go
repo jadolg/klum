@@ -4,8 +4,8 @@ import (
 	"os"
 
 	"github.com/jadolg/klum/pkg/apis/klum.cattle.io/v1alpha1"
-	controllergen "github.com/rancher/wrangler/pkg/controller-gen"
-	"github.com/rancher/wrangler/pkg/controller-gen/args"
+	controllergen "github.com/rancher/wrangler/v3/pkg/controller-gen"
+	"github.com/rancher/wrangler/v3/pkg/controller-gen/args"
 )
 
 func main() {

@@ -24,244 +24,29 @@ import (
 	"time"
 
 	v1alpha1 "github.com/jadolg/klum/pkg/apis/klum.cattle.io/v1alpha1"
-	"github.com/rancher/lasso/pkg/client"
-	"github.com/rancher/lasso/pkg/controller"
-	"github.com/rancher/wrangler/pkg/apply"
-	"github.com/rancher/wrangler/pkg/condition"
-	"github.com/rancher/wrangler/pkg/generic"
-	"github.com/rancher/wrangler/pkg/kv"
+	"github.com/rancher/wrangler/v3/pkg/apply"
+	"github.com/rancher/wrangler/v3/pkg/condition"
+	"github.com/rancher/wrangler/v3/pkg/generic"
+	"github.com/rancher/wrangler/v3/pkg/kv"
 	"k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/apimachinery/pkg/watch"
-	"k8s.io/client-go/tools/cache"
 )
 
-type UserSyncGithubHandler func(string, *v1alpha1.UserSyncGithub) (*v1alpha1.UserSyncGithub, error)
-
+// UserSyncGithubController interface for managing UserSyncGithub resources.
 type UserSyncGithubController interface {
-	generic.ControllerMeta
-	UserSyncGithubClient
-
-	OnChange(ctx context.Context, name string, sync UserSyncGithubHandler)
-	OnRemove(ctx context.Context, name string, sync UserSyncGithubHandler)
-	Enqueue(name string)
-	EnqueueAfter(name string, duration time.Duration)
-
-	Cache() UserSyncGithubCache
+	generic.NonNamespacedControllerInterface[*v1alpha1.UserSyncGithub, *v1alpha1.UserSyncGithubList]
 }
 
+// UserSyncGithubClient interface for managing UserSyncGithub resources in Kubernetes.
 type UserSyncGithubClient interface {
-	Create(*v1alpha1.UserSyncGithub) (*v1alpha1.UserSyncGithub, error)
-	Update(*v1alpha1.UserSyncGithub) (*v1alpha1.UserSyncGithub, error)
-	UpdateStatus(*v1alpha1.UserSyncGithub) (*v1alpha1.UserSyncGithub, error)
-	Delete(name string, options *metav1.DeleteOptions) error
-	Get(name string, options metav1.GetOptions) (*v1alpha1.UserSyncGithub, error)
-	List(opts metav1.ListOptions) (*v1alpha1.UserSyncGithubList, error)
-	Watch(opts metav1.ListOptions) (watch.Interface, error)
-	Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.UserSyncGithub, err error)
+	generic.NonNamespacedClientInterface[*v1alpha1.UserSyncGithub, *v1alpha1.UserSyncGithubList]
 }
 
+// UserSyncGithubCache interface for retrieving UserSyncGithub resources in memory.
 type UserSyncGithubCache interface {
-	Get(name string) (*v1alpha1.UserSyncGithub, error)
-	List(selector labels.Selector) ([]*v1alpha1.UserSyncGithub, error)
-
-	AddIndexer(indexName string, indexer UserSyncGithubIndexer)
-	GetByIndex(indexName, key string) ([]*v1alpha1.UserSyncGithub, error)
-}
-
-type UserSyncGithubIndexer func(obj *v1alpha1.UserSyncGithub) ([]string, error)
-
-type userSyncGithubController struct {
-	controller    controller.SharedController
-	client        *client.Client
-	gvk           schema.GroupVersionKind
-	groupResource schema.GroupResource
-}
-
-func NewUserSyncGithubController(gvk schema.GroupVersionKind, resource string, namespaced bool, controller controller.SharedControllerFactory) UserSyncGithubController {
-	c := controller.ForResourceKind(gvk.GroupVersion().WithResource(resource), gvk.Kind, namespaced)
-	return &userSyncGithubController{
-		controller: c,
-		client:     c.Client(),
-		gvk:        gvk,
-		groupResource: schema.GroupResource{
-			Group:    gvk.Group,
-			Resource: resource,
-		},
-	}
-}
-
-func FromUserSyncGithubHandlerToHandler(sync UserSyncGithubHandler) generic.Handler {
-	return func(key string, obj runtime.Object) (ret runtime.Object, err error) {
-		var v *v1alpha1.UserSyncGithub
-		if obj == nil {
-			v, err = sync(key, nil)
-		} else {
-			v, err = sync(key, obj.(*v1alpha1.UserSyncGithub))
-		}
-		if v == nil {
-			return nil, err
-		}
-		return v, err
-	}
-}
-
-func (c *userSyncGithubController) Updater() generic.Updater {
-	return func(obj runtime.Object) (runtime.Object, error) {
-		newObj, err := c.Update(obj.(*v1alpha1.UserSyncGithub))
-		if newObj == nil {
-			return nil, err
-		}
-		return newObj, err
-	}
-}
-
-func UpdateUserSyncGithubDeepCopyOnChange(client UserSyncGithubClient, obj *v1alpha1.UserSyncGithub, handler func(obj *v1alpha1.UserSyncGithub) (*v1alpha1.UserSyncGithub, error)) (*v1alpha1.UserSyncGithub, error) {
-	if obj == nil {
-		return obj, nil
-	}
-
-	copyObj := obj.DeepCopy()
-	newObj, err := handler(copyObj)
-	if newObj != nil {
-		copyObj = newObj
-	}
-	if obj.ResourceVersion == copyObj.ResourceVersion && !equality.Semantic.DeepEqual(obj, copyObj) {
-		return client.Update(copyObj)
-	}
-
-	return copyObj, err
-}
-
-func (c *userSyncGithubController) AddGenericHandler(ctx context.Context, name string, handler generic.Handler) {
-	c.controller.RegisterHandler(ctx, name, controller.SharedControllerHandlerFunc(handler))
-}
-
-func (c *userSyncGithubController) AddGenericRemoveHandler(ctx context.Context, name string, handler generic.Handler) {
-	c.AddGenericHandler(ctx, name, generic.NewRemoveHandler(name, c.Updater(), handler))
-}
-
-func (c *userSyncGithubController) OnChange(ctx context.Context, name string, sync UserSyncGithubHandler) {
-	c.AddGenericHandler(ctx, name, FromUserSyncGithubHandlerToHandler(sync))
-}
-
-func (c *userSyncGithubController) OnRemove(ctx context.Context, name string, sync UserSyncGithubHandler) {
-	c.AddGenericHandler(ctx, name, generic.NewRemoveHandler(name, c.Updater(), FromUserSyncGithubHandlerToHandler(sync)))
-}
-
-func (c *userSyncGithubController) Enqueue(name string) {
-	c.controller.Enqueue("", name)
-}
-
-func (c *userSyncGithubController) EnqueueAfter(name string, duration time.Duration) {
-	c.controller.EnqueueAfter("", name, duration)
-}
-
-func (c *userSyncGithubController) Informer() cache.SharedIndexInformer {
-	return c.controller.Informer()
-}
-
-func (c *userSyncGithubController) GroupVersionKind() schema.GroupVersionKind {
-	return c.gvk
-}
-
-func (c *userSyncGithubController) Cache() UserSyncGithubCache {
-	return &userSyncGithubCache{
-		indexer:  c.Informer().GetIndexer(),
-		resource: c.groupResource,
-	}
-}
-
-func (c *userSyncGithubController) Create(obj *v1alpha1.UserSyncGithub) (*v1alpha1.UserSyncGithub, error) {
-	result := &v1alpha1.UserSyncGithub{}
-	return result, c.client.Create(context.TODO(), "", obj, result, metav1.CreateOptions{})
-}
-
-func (c *userSyncGithubController) Update(obj *v1alpha1.UserSyncGithub) (*v1alpha1.UserSyncGithub, error) {
-	result := &v1alpha1.UserSyncGithub{}
-	return result, c.client.Update(context.TODO(), "", obj, result, metav1.UpdateOptions{})
-}
-
-func (c *userSyncGithubController) UpdateStatus(obj *v1alpha1.UserSyncGithub) (*v1alpha1.UserSyncGithub, error) {
-	result := &v1alpha1.UserSyncGithub{}
-	return result, c.client.UpdateStatus(context.TODO(), "", obj, result, metav1.UpdateOptions{})
-}
-
-func (c *userSyncGithubController) Delete(name string, options *metav1.DeleteOptions) error {
-	if options == nil {
-		options = &metav1.DeleteOptions{}
-	}
-	return c.client.Delete(context.TODO(), "", name, *options)
-}
-
-func (c *userSyncGithubController) Get(name string, options metav1.GetOptions) (*v1alpha1.UserSyncGithub, error) {
-	result := &v1alpha1.UserSyncGithub{}
-	return result, c.client.Get(context.TODO(), "", name, result, options)
-}
-
-func (c *userSyncGithubController) List(opts metav1.ListOptions) (*v1alpha1.UserSyncGithubList, error) {
-	result := &v1alpha1.UserSyncGithubList{}
-	return result, c.client.List(context.TODO(), "", result, opts)
-}
-
-func (c *userSyncGithubController) Watch(opts metav1.ListOptions) (watch.Interface, error) {
-	return c.client.Watch(context.TODO(), "", opts)
-}
-
-func (c *userSyncGithubController) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (*v1alpha1.UserSyncGithub, error) {
-	result := &v1alpha1.UserSyncGithub{}
-	return result, c.client.Patch(context.TODO(), "", name, pt, data, result, metav1.PatchOptions{}, subresources...)
-}
-
-type userSyncGithubCache struct {
-	indexer  cache.Indexer
-	resource schema.GroupResource
-}
-
-func (c *userSyncGithubCache) Get(name string) (*v1alpha1.UserSyncGithub, error) {
-	obj, exists, err := c.indexer.GetByKey(name)
-	if err != nil {
-		return nil, err
-	}
-	if !exists {
-		return nil, errors.NewNotFound(c.resource, name)
-	}
-	return obj.(*v1alpha1.UserSyncGithub), nil
-}
-
-func (c *userSyncGithubCache) List(selector labels.Selector) (ret []*v1alpha1.UserSyncGithub, err error) {
-
-	err = cache.ListAll(c.indexer, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1alpha1.UserSyncGithub))
-	})
-
-	return ret, err
-}
-
-func (c *userSyncGithubCache) AddIndexer(indexName string, indexer UserSyncGithubIndexer) {
-	utilruntime.Must(c.indexer.AddIndexers(map[string]cache.IndexFunc{
-		indexName: func(obj interface{}) (strings []string, e error) {
-			return indexer(obj.(*v1alpha1.UserSyncGithub))
-		},
-	}))
-}
-
-func (c *userSyncGithubCache) GetByIndex(indexName, key string) (result []*v1alpha1.UserSyncGithub, err error) {
-	objs, err := c.indexer.ByIndex(indexName, key)
-	if err != nil {
-		return nil, err
-	}
-	result = make([]*v1alpha1.UserSyncGithub, 0, len(objs))
-	for _, obj := range objs {
-		result = append(result, obj.(*v1alpha1.UserSyncGithub))
-	}
-	return result, nil
+	generic.NonNamespacedCacheInterface[*v1alpha1.UserSyncGithub]
 }
 
 // UserSyncGithubStatusHandler is executed for every added or modified UserSyncGithub. Should return the new status to be updated
@@ -278,7 +63,7 @@ func RegisterUserSyncGithubStatusHandler(ctx context.Context, controller UserSyn
 		condition: condition,
 		handler:   handler,
 	}
-	controller.AddGenericHandler(ctx, name, FromUserSyncGithubHandlerToHandler(statusHandler.sync))
+	controller.AddGenericHandler(ctx, name, generic.FromObjectHandlerToHandler(statusHandler.sync))
 }
 
 // RegisterUserSyncGithubGeneratingHandler configures a UserSyncGithubController to execute a UserSyncGithubGeneratingHandler for every events observed, passing the returned objects to the provided apply.Apply.
