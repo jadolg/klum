@@ -30,6 +30,8 @@ jobs:
     - name: Run klum in the background
       run: |
         SERVER_NAME=$(kind get kubeconfig | yq .clusters[0].cluster.server) go run main.go &
+      env:
+        NAMESPACE: default
 
     - name: Test
       shell: bash
