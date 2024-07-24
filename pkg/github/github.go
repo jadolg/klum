@@ -11,7 +11,7 @@ import (
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
 
-	"github.com/google/go-github/v53/github"
+	"github.com/google/go-github/v63/github"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/oauth2"
 )
