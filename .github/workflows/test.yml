@@ -1,0 +1,30 @@
+name: Test
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod
+        cache: true
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Create k8s Kind Cluster
+      uses: helm/kind-action@v1
+
+    - name: Check cluster status
+      run: |
+        kubectl get all -A
