@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/go-github/v53/github"
 	"github.com/jadolg/klum/pkg/apis/klum.cattle.io/v1alpha1"
+	log "github.com/sirupsen/logrus"
 )
 
 func createRepositoryEnvSecret(ctx context.Context, client *github.Client, syncSpec *v1alpha1.GithubSyncSpec, secretValue []byte) error {
