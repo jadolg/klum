@@ -6,6 +6,7 @@ klum does the following basic tasks:
 * Create/Delete/Modify users
 * Easily manage roles associated with users
 * Issues kubeconfig files for users to use
+* Synchronizes kubeconfigs to GitHub secrets
 
 This is a very simple controller that just create service accounts under the hood. Properly
 configured this should work on any Kubernetes cluster.
