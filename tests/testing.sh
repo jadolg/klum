@@ -15,7 +15,7 @@ function assert_fail() {
 }
 
 function eventually() {
-    max_attempts=10
+    max_attempts=20
     for ((i=1; i<=max_attempts; i++)); do
       if "$@"; then
         echo "Command succeeded"
@@ -23,7 +23,7 @@ function eventually() {
       else
         echo "Attempt $i failed"
       fi
-      sleep 3
+      sleep 5
     done
     echo "Command failed after $max_attempts attempts"
     exit 1
