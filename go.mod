@@ -10,7 +10,7 @@ require (
 	github.com/bradleyfalzon/ghinstallation/v2 v2.13.0
 	github.com/google/go-github/v63 v63.0.0
 	github.com/prometheus/client_golang v1.20.5
-	github.com/rancher/lasso v0.0.0-20240924233157-8f384efc8813
+	github.com/rancher/lasso v0.2.0
 	github.com/rancher/wrangler-api v0.6.0
 	github.com/rancher/wrangler/v3 v3.1.0
 	github.com/sirupsen/logrus v1.9.3
