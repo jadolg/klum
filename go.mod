@@ -1,8 +1,7 @@
 module github.com/jadolg/klum
 
 go 1.22.0
-
-toolchain go1.22.3
+toolchain go1.23.6
 
 replace github.com/rancher/wrangler-api => github.com/dylanhitt/wrangler-api v0.7.0
 
@@ -16,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli v1.22.16
-	golang.org/x/crypto v0.33.0
+	golang.org/x/crypto v0.35.0
 	golang.org/x/oauth2 v0.26.0
 	k8s.io/api v0.31.3
 	k8s.io/apiextensions-apiserver v0.31.3
