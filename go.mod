@@ -16,7 +16,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli v1.22.16
-	golang.org/x/crypto v0.33.0
+	golang.org/x/crypto v0.35.0
 	golang.org/x/oauth2 v0.26.0
 	k8s.io/api v0.32.3
 	k8s.io/apiextensions-apiserver v0.32.3
@@ -64,7 +64,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/mod v0.23.0 // indirect
-	golang.org/x/net v0.35.0 // indirect
+	golang.org/x/net v0.36.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/term v0.29.0 // indirect
