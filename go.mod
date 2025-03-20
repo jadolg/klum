@@ -1,8 +1,6 @@
 module github.com/jadolg/klum
 
-go 1.22.0
-
-toolchain go1.22.3
+go 1.24
 
 replace github.com/rancher/wrangler-api => github.com/dylanhitt/wrangler-api v0.7.0
 
