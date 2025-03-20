@@ -2,6 +2,7 @@ package github
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/go-github/v63/github"
 	"github.com/jadolg/klum/pkg/apis/klum.cattle.io/v1alpha1"
@@ -11,6 +12,19 @@ func createRepositorySecret(ctx context.Context, client *github.Client, syncSpec
 	var key *github.PublicKey
 	key, _, err := client.Actions.GetRepoPublicKey(ctx, syncSpec.Owner, syncSpec.Repository)
 	if err != nil {
+		return err
+	}
+
+	// Check if the secret already exists
+	_, _, err = client.Actions.GetRepoSecret(ctx, syncSpec.Owner, syncSpec.Repository, syncSpec.SecretName)
+	if err == nil {
+		// Secret exists, don't overwrite it
+		return nil
+	}
+	
+	// If error is not 404 (not found), return the error
+	var ghErr *github.ErrorResponse
+	if errors.As(err, &ghErr) && ghErr.Response.StatusCode != 404 {
 		return err
 	}
 

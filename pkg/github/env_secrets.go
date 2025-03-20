@@ -32,6 +32,19 @@ func createRepositoryEnvSecret(ctx context.Context, client *github.Client, syncS
 		}
 	}
 
+	// Check if the secret already exists
+	_, _, err = client.Actions.GetEnvSecret(ctx, repositoryID, syncSpec.Environment, syncSpec.SecretName)
+	if err == nil {
+		// Secret exists, don't overwrite it
+		return nil
+	}
+	
+	// If error is not 404 (not found), return the error
+	var ghErr *github.ErrorResponse
+	if errors.As(err, &ghErr) && ghErr.Response.StatusCode != 404 {
+		return err
+	}
+
 	key, _, err = client.Actions.GetEnvPublicKey(ctx, repositoryID, syncSpec.Environment)
 	if err != nil {
 		return err
