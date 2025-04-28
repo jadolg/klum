@@ -1,6 +1,7 @@
 module github.com/jadolg/klum
 
 go 1.24
+toolchain go1.24.1
 
 replace github.com/rancher/wrangler-api => github.com/dylanhitt/wrangler-api v0.7.0
 
@@ -18,9 +19,9 @@ require (
 	github.com/urfave/cli v1.22.16
 	golang.org/x/crypto v0.37.0
 	golang.org/x/oauth2 v0.29.0
-	k8s.io/api v0.32.3
+	k8s.io/api v0.33.0
 	k8s.io/apiextensions-apiserver v0.32.3
-	k8s.io/apimachinery v0.32.3
+	k8s.io/apimachinery v0.33.0
 	k8s.io/client-go v0.32.3
 	sigs.k8s.io/yaml v1.4.0
 )
@@ -45,7 +46,6 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/go-github/v71 v71.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
-	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -68,7 +68,7 @@ require (
 	golang.org/x/sys v0.32.0 // indirect
 	golang.org/x/term v0.31.0 // indirect
 	golang.org/x/text v0.24.0 // indirect
-	golang.org/x/time v0.7.0 // indirect
+	golang.org/x/time v0.9.0 // indirect
 	golang.org/x/tools v0.30.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
@@ -79,8 +79,9 @@ require (
 	k8s.io/gengo v0.0.0-20250130153323-76c5745d3511 // indirect
 	k8s.io/gengo/v2 v2.0.0-20240911193312-2b36238f13e9 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
-	k8s.io/kube-openapi v0.0.0-20241105132330-32ad38e42d3f // indirect
+	k8s.io/kube-openapi v0.0.0-20250318190949-c8a335a9a2ff // indirect
 	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738 // indirect
 	sigs.k8s.io/json v0.0.0-20241010143419-9aa6b5e7a4b3 // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.4.3 // indirect
+	sigs.k8s.io/randfill v1.0.0 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.6.0 // indirect
 )
