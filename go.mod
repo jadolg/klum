@@ -16,7 +16,7 @@ require (
 	github.com/rancher/wrangler-api v0.0.0-00010101000000-000000000000
 	github.com/rancher/wrangler/v3 v3.2.3
 	github.com/sirupsen/logrus v1.9.3
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.0
 	github.com/urfave/cli v1.22.17
 	golang.org/x/crypto v0.41.0
 	golang.org/x/oauth2 v0.30.0
