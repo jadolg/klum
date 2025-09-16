@@ -24,15 +24,31 @@ spec:
     spec:
       serviceAccountName: klum
       containers:
-      - image: ghcr.io/jadolg/klum:v0.8.9
-        name: klum
-        env:
-          - name: CONTEXT_NAME
-            value: mycluster
-          - name: SERVER_NAME
-            value: https://myserver.example.com:6443
-          - name: NAMESPACE
-            value: klum
+        - image: ghcr.io/jadolg/klum:v0.8.9
+          imagePullPolicy: IfNotPresent
+          name: klum
+          securityContext:
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            runAsUser: 1000
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          env:
+            - name: CONTEXT_NAME
+              value: mycluster
+            - name: SERVER_NAME
+              value: https://myserver.example.com:6443
+            - name: NAMESPACE
+              value: klum
 
 ---
 
@@ -53,6 +69,6 @@ roleRef:
   kind: ClusterRole
   name: cluster-admin
 subjects:
-- kind: ServiceAccount
-  name: klum
-  namespace: klum
+  - kind: ServiceAccount
+    name: klum
+    namespace: klum
