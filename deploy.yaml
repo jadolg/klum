@@ -24,7 +24,7 @@ spec:
     spec:
       serviceAccountName: klum
       containers:
-        - image: ghcr.io/jadolg/klum:v0.8.9
+        - image: ghcr.io/jadolg/klum:v0.8.10
           imagePullPolicy: IfNotPresent
           name: klum
           securityContext:
