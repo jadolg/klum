@@ -397,8 +397,8 @@ github.com/rancher/lasso v0.2.7/go.mod h1:L3ol8PdO21KoMhNa3RWjpR3ZBnE70JCAod1nJu
 github.com/rancher/wrangler v0.8.10/go.mod h1:Lte9WjPtGYxYacIWeiS9qawvu2R4NujFU9xuXWJvc/0=
 github.com/rancher/wrangler v0.8.11 h1:ubWaJgwt9FQdu5ZmfWyqnIabnJ+GkEAow5KXvX33vfo=
 github.com/rancher/wrangler v0.8.11/go.mod h1:Lte9WjPtGYxYacIWeiS9qawvu2R4NujFU9xuXWJvc/0=
-github.com/rancher/wrangler/v3 v3.4.0 h1:pEZ9wIM3k5EZkVXU2TbD6mWVfw5mtdv1v0PRJ7fPQxw=
-github.com/rancher/wrangler/v3 v3.4.0/go.mod h1:bRcdkdwRTwoXVSWVGtJdSBNXkKbInlo+PVkCtkUCi4s=
+github.com/rancher/wrangler/v3 v3.5.0 h1:Us8RcMBpjrhV/HRfIq0a0uJmLEhfWcGUgNE39y7BQ7A=
+github.com/rancher/wrangler/v3 v3.5.0/go.mod h1:bRcdkdwRTwoXVSWVGtJdSBNXkKbInlo+PVkCtkUCi4s=
 github.com/remyoudompheng/bigfft v0.0.0-20170806203942-52369c62f446/go.mod h1:uYEyJGbgTkfkS4+E/PavXkNJcbFIpEtjt2B0KDQ5+9M=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
