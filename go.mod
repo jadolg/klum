@@ -11,7 +11,7 @@ require (
 	github.com/rancher/lasso v0.2.9
 	github.com/rancher/wrangler-api v0.0.0-00010101000000-000000000000
 	github.com/rancher/wrangler/v3 v3.7.1
-	github.com/sirupsen/logrus v1.9.4
+	github.com/sirupsen/logrus v1.10.0
 	github.com/stretchr/testify v1.12.0
 	github.com/urfave/cli v1.22.17
 	golang.org/x/crypto v0.55.0
