@@ -10,7 +10,7 @@ require (
 	github.com/prometheus/client_golang v1.24.1
 	github.com/rancher/lasso v0.2.9
 	github.com/rancher/wrangler-api v0.0.0-00010101000000-000000000000
-	github.com/rancher/wrangler/v3 v3.7.0
+	github.com/rancher/wrangler/v3 v3.7.1
 	github.com/sirupsen/logrus v1.9.4
 	github.com/stretchr/testify v1.12.0
 	github.com/urfave/cli v1.22.17
@@ -31,7 +31,6 @@ require (
 	github.com/emicklei/go-restful/v3 v3.13.0 // indirect
 	github.com/evanphx/json-patch v5.9.11+incompatible // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
-	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
 	github.com/go-openapi/jsonreference v0.21.0 // indirect
@@ -71,7 +70,6 @@ require (
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/code-generator v0.36.3 // indirect
 	k8s.io/gengo v0.0.0-20250130153323-76c5745d3511 // indirect
