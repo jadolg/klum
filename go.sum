@@ -405,8 +405,8 @@ github.com/rancher/lasso v0.2.10/go.mod h1:O/+Qi1B0rDFsDuIbPecaUzvAdKNUFg9eZZFAu
 github.com/rancher/wrangler v0.8.10/go.mod h1:Lte9WjPtGYxYacIWeiS9qawvu2R4NujFU9xuXWJvc/0=
 github.com/rancher/wrangler v0.8.11 h1:ubWaJgwt9FQdu5ZmfWyqnIabnJ+GkEAow5KXvX33vfo=
 github.com/rancher/wrangler v0.8.11/go.mod h1:Lte9WjPtGYxYacIWeiS9qawvu2R4NujFU9xuXWJvc/0=
-github.com/rancher/wrangler/v3 v3.7.1 h1:3IoJWG8YEsPJ3oYXEDTNjITsrqxDuDz722ivCFXQOGQ=
-github.com/rancher/wrangler/v3 v3.7.1/go.mod h1:SRd8RgvLACW1sOeOE/JagsO1gWVgSduKGQtPSsKzntI=
+github.com/rancher/wrangler/v3 v3.7.2 h1:a1lNVgK43TaAnLa/jXk12HeedxO55BpAHD7NNinQnQg=
+github.com/rancher/wrangler/v3 v3.7.2/go.mod h1:VdeegQBV74Ci6+zoffAB8GowURO1aMy6dg5HiIi5tr4=
 github.com/remyoudompheng/bigfft v0.0.0-20170806203942-52369c62f446/go.mod h1:uYEyJGbgTkfkS4+E/PavXkNJcbFIpEtjt2B0KDQ5+9M=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
