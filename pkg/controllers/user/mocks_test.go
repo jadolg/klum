@@ -323,7 +323,8 @@ func (m *MockApply) WithIgnorePreviousApplied() apply.Apply { return m }
 func (m *MockApply) WithDiffPatch(gvk schema.GroupVersionKind, namespace, name string, patch []byte) apply.Apply {
 	return m
 }
-func (m *MockApply) WithGVK(gvks ...schema.GroupVersionKind) apply.Apply { return m }
+func (m *MockApply) WithGVK(gvks ...schema.GroupVersionKind) apply.Apply           { return m }
+func (m *MockApply) WithNullSafePatch(gvks ...schema.GroupVersionKind) apply.Apply { return m }
 func (m *MockApply) WithPatcher(gvk schema.GroupVersionKind, patcher apply.Patcher) apply.Apply {
 	return m
 }
